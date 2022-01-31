@@ -8,15 +8,15 @@ use termion::input::TermRead;
 use termion::raw::IntoRawMode;
 
 pub struct Screen<W: Write> {
-    out: W,
-    terminal_cols: i32,
-    terminal_rows: i32,
+    buffer: W,
+    cols: u16,
+    rows: u16,
 }
 
 impl<W: Write> Screen<W> {
-    pub fn new(mut out: W) -> Self {
+    pub fn new(mut buffer: W) -> Self {
         write!(
-            out,
+            buffer,
             "{}{}{}",
             termion::cursor::Hide,
             termion::cursor::Goto(1, 1),
@@ -25,9 +25,9 @@ impl<W: Write> Screen<W> {
         .unwrap();
 
         Self {
-            out,
-            terminal_cols: 0,
-            terminal_rows: 0,
+            buffer,
+            cols: 0,
+            rows: 0,
         }
     }
 }
@@ -47,11 +47,11 @@ impl<W: Write> Drop for Screen<W> {
 
 impl<W: Write> Write for Screen<W> {
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
-        self.out.write(buf)
+        self.buffer.write(buf)
     }
 
     fn flush(&mut self) -> std::io::Result<()> {
-        self.out.flush()
+        self.buffer.flush()
     }
 }
 
@@ -79,8 +79,10 @@ pub fn send_resize_events(sync_sender: SyncSender<Event>) {
 pub fn receive_event<W: Write>(receiver: &Receiver<Event>, screen: &mut Screen<W>) -> bool {
     let event = receiver.recv().unwrap();
 
+    let mut screen_buffer = Vec::<u8>::new();
+
     write!(
-        screen,
+        screen_buffer,
         "{}{}",
         termion::cursor::Goto(10, 3),
         termion::clear::All,
@@ -89,7 +91,7 @@ pub fn receive_event<W: Write>(receiver: &Receiver<Event>, screen: &mut Screen<W
 
     match event {
         Event::Key(key) => {
-            writeln!(screen, "{key:?} - {}", screen.terminal_cols.clone()).unwrap();
+            writeln!(screen_buffer, "{key:?} - cols: {}, rows: {}", screen.cols, screen.rows).unwrap();
 
             match key {
                 termion::event::Key::Char('q') => return false,
@@ -97,10 +99,17 @@ pub fn receive_event<W: Write>(receiver: &Receiver<Event>, screen: &mut Screen<W
             }
         }
         Event::Resize => {
-            screen.terminal_cols += 1;
+            let (cols, rows) = termion::terminal_size().unwrap();
+            screen.cols = cols;
+            screen.rows = rows;
+            writeln!(screen_buffer, "cols: {}, rows: {}", screen.cols, screen.rows).unwrap();
         }
     }
 
+    screen_buffer.flush().unwrap();
+
+    // double buffering
+    screen.write_all(&screen_buffer).unwrap();
     screen.flush().unwrap();
 
     true
