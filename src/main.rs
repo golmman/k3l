@@ -57,6 +57,7 @@ impl<W: Write> Write for Screen<W> {
 
 pub enum Event {
     Key(Key),
+    Resize,
 }
 
 pub fn send_key_events(sender: SyncSender<Event>) {
@@ -65,6 +66,14 @@ pub fn send_key_events(sender: SyncSender<Event>) {
     for key in stdin.keys().flatten() {
         let _ = sender.send(Event::Key(key));
     }
+}
+
+pub fn send_resize_events(sync_sender: SyncSender<Event>) {
+    let _ = unsafe {
+        signal_hook::low_level::register(signal_hook::consts::SIGWINCH, move || {
+            sync_sender.send(Event::Resize).unwrap();
+        })
+    };
 }
 
 pub fn receive_event<W: Write>(receiver: &Receiver<Event>, screen: &mut Screen<W>) -> bool {
@@ -80,12 +89,15 @@ pub fn receive_event<W: Write>(receiver: &Receiver<Event>, screen: &mut Screen<W
 
     match event {
         Event::Key(key) => {
-            writeln!(screen, "{key:?}").unwrap();
+            writeln!(screen, "{key:?} - {}", screen.terminal_cols.clone()).unwrap();
 
             match key {
                 termion::event::Key::Char('q') => return false,
                 _ => {}
             }
+        }
+        Event::Resize => {
+            screen.terminal_cols += 1;
         }
     }
 
@@ -111,8 +123,10 @@ fn main() {
 
     let (sender, receiver) = sync_channel::<Event>(1024);
 
-    let sender1 = sender.clone();
-    thread::spawn(move || send_key_events(sender1));
+    let key_sender = sender.clone();
+    let resize_sender = sender.clone();
+    thread::spawn(move || send_key_events(key_sender));
+    thread::spawn(move || send_resize_events(resize_sender));
 
     while receive_event(&receiver, &mut screen) {}
 }
