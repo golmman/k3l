@@ -11,9 +11,17 @@ pub struct Screen<W: Write> {
     pub rows: u16,
 }
 
-impl Screen<RawTerminal<Stdout>> {
+pub type DefaultScreen = Screen<RawTerminal<Stdout>>;
+
+impl DefaultScreen {
     pub fn new() -> Self {
         Screen::from(stdout().into_raw_mode().unwrap())
+    }
+
+    pub fn resize(&mut self) {
+        let (cols, rows) = termion::terminal_size().unwrap();
+        self.cols = cols;
+        self.rows = rows;
     }
 }
 
@@ -30,11 +38,9 @@ impl<W: Write> From<W> for Screen<W> {
 
         buffer.flush().unwrap();
 
-        Self {
-            buffer,
-            cols: 0,
-            rows: 0,
-        }
+        let (cols, rows) = termion::terminal_size().unwrap();
+
+        Self { buffer, cols, rows }
     }
 }
 
