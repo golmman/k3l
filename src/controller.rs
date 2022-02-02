@@ -4,6 +4,9 @@ use std::sync::mpsc::sync_channel;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::SyncSender;
 use std::thread;
+use std::thread::sleep;
+use std::time::Duration;
+use std::time::Instant;
 
 use termion::event::Key;
 use termion::input::TermRead;
@@ -14,6 +17,7 @@ use crate::state::State;
 pub enum TerminalEvent {
     Key(Key),
     Resize,
+    Elapse,
 }
 
 pub struct Controller {
@@ -44,15 +48,26 @@ impl Controller {
     }
 
     pub fn run(&mut self) {
+        let elapse_sender = self.sender.clone();
         let key_sender = self.sender.clone();
         let resize_sender = self.sender.clone();
 
+        thread::spawn(move || Controller::send_elapse_events(elapse_sender));
         thread::spawn(move || Controller::send_key_events(key_sender));
         thread::spawn(move || Controller::send_resize_events(resize_sender));
 
         self.draw();
 
         while self.receive_event() {}
+    }
+
+    fn send_elapse_events(sender: SyncSender<TerminalEvent>) {
+        let start_instant = Instant::now();
+
+        loop {
+            sleep(Duration::from_millis(250));
+            let _ = sender.send(TerminalEvent::Elapse);
+        }
     }
 
     fn send_key_events(sender: SyncSender<TerminalEvent>) {
@@ -85,10 +100,17 @@ impl Controller {
                     Key::Char('l') => self.state.move_cursor_right(),
                     Key::Char('k') => self.state.move_cursor_up(),
                     Key::Char('j') => self.state.move_cursor_down(),
+                    Key::Char('H') => self.state.move_map_left(),
+                    Key::Char('L') => self.state.move_map_right(),
+                    Key::Char('K') => self.state.move_map_up(),
+                    Key::Char('J') => self.state.move_map_down(),
                     _ => {}
                 }
             }
             TerminalEvent::Resize => self.screen.resize(),
+            TerminalEvent::Elapse => {
+                self.state.elapsed_time += 1;
+            }
         }
 
         self.clear_screen();
@@ -113,6 +135,7 @@ impl Controller {
 
     pub fn draw(&mut self) {
         self.draw_floor();
+        self.draw_map();
         self.draw_debug_info();
         self.draw_cursor();
     }
@@ -132,8 +155,8 @@ impl Controller {
 
         writeln!(
             self.screen_buffer,
-            "{:?} - cols: {}, rows: {}",
-            self.last_key, self.screen.cols, self.screen.rows
+            "{:?} - cols: {}, rows: {}, time: {}",
+            self.last_key, self.screen.cols, self.screen.rows, self.state.elapsed_time,
         )
         .unwrap();
     }
@@ -145,6 +168,24 @@ impl Controller {
                 "{}{}",
                 termion::cursor::Goto(1, y + 1),
                 ".".repeat(self.screen.cols.into())
+            )
+            .unwrap();
+        }
+    }
+
+    fn draw_map(&mut self) {
+        let map_x = self.state.map_pos.x;
+        let map_y = self.state.map_pos.y;
+
+        for row in 0..self.state.map.tiles.len() {
+            let row = row as u16;
+            let displayed_row = self.state.map.get_row(row);
+
+            write!(
+                self.screen_buffer,
+                "{}{}",
+                termion::cursor::Goto(map_x, map_y + row),
+                displayed_row,
             )
             .unwrap();
         }
