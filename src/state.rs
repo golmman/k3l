@@ -1,10 +1,10 @@
 use crate::common::Point;
 
 pub struct State {
-    pub cursor_pos: Point,
+    pub cursor_pos: Point<u16>,
     pub elapsed_time: u64,
     pub map: Map,
-    pub map_pos: Point,
+    pub map_pos: Point<i16>,
 }
 
 pub struct Map {
@@ -41,7 +41,7 @@ impl From<String> for Map {
     fn from(chars: String) -> Self {
         let mut tiles = Vec::<Vec<MapTile>>::new();
 
-        for chars_row in chars.split("ENDL") {
+        for chars_row in chars.split_terminator("ENDL") {
             let mut tiles_row = Vec::<MapTile>::new();
 
             for chars_col in chars_row.chars() {

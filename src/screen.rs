@@ -48,8 +48,8 @@ impl<W: Write> Drop for Screen<W> {
     fn drop(&mut self) {
         write!(
             self,
-            "{}{}{}",
-            termion::clear::All,
+            "{}{}",
+            //termion::clear::All,
             termion::cursor::Goto(1, 1),
             termion::cursor::Show,
         )
