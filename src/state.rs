@@ -51,9 +51,7 @@ impl From<String> for Map {
             tiles.push(tiles_row);
         }
 
-        Self {
-            tiles,
-        }
+        Self { tiles }
     }
 }
 
