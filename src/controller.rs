@@ -20,7 +20,6 @@ pub enum TerminalEvent {
 }
 
 pub struct Controller {
-    last_key: Option<Key>,
     receiver: Receiver<TerminalEvent>,
     renderer: Renderer,
     sender: SyncSender<TerminalEvent>,
@@ -30,12 +29,10 @@ pub struct Controller {
 impl Controller {
     pub fn new() -> Self {
         let (sender, receiver) = sync_channel::<TerminalEvent>(1024);
-        let last_key = None;
         let renderer = Renderer::new();
-        let state = State::new();
+        let state = State::new(renderer.screen.cols, renderer.screen.rows);
 
         Self {
-            last_key,
             receiver,
             renderer,
             sender,
@@ -62,7 +59,7 @@ impl Controller {
 
     fn send_elapse_events(sender: SyncSender<TerminalEvent>) {
         loop {
-            sleep(Duration::from_millis(250));
+            sleep(Duration::from_millis(125));
             let _ = sender.send(TerminalEvent::Elapse);
         }
     }
@@ -89,29 +86,30 @@ impl Controller {
         let event = self.receiver.recv().unwrap();
 
         match event {
-            TerminalEvent::Key(key) => {
-                self.last_key = Some(key);
-                match key {
-                    Key::Char('q') => return false,
-                    Key::Char('H') => self.state.move_cursor_left(),
-                    Key::Char('L') => self.state.move_cursor_right(),
-                    Key::Char('K') => self.state.move_cursor_up(),
-                    Key::Char('J') => self.state.move_cursor_down(),
-                    Key::Char('h') => self.state.move_map_right(),
-                    Key::Char('l') => self.state.move_map_left(),
-                    Key::Char('k') => self.state.move_map_down(),
-                    Key::Char('j') => self.state.move_map_up(),
-                    _ => {}
-                }
-            }
-            TerminalEvent::Resize => self.renderer.screen.resize(),
-            TerminalEvent::Elapse => {
-                self.state.elapsed_time += 1;
-            }
+            TerminalEvent::Key(key) => match key {
+                Key::Char('q') => return false,
+                Key::Char('H') => self.state.move_cursor_left(),
+                Key::Char('L') => self.state.move_cursor_right(),
+                Key::Char('K') => self.state.move_cursor_up(),
+                Key::Char('J') => self.state.move_cursor_down(),
+                Key::Char('h') => self.state.move_map_right(),
+                Key::Char('l') => self.state.move_map_left(),
+                Key::Char('k') => self.state.move_map_down(),
+                Key::Char('j') => self.state.move_map_up(),
+                _ => {}
+            },
+            TerminalEvent::Resize => self.resize(),
+            TerminalEvent::Elapse => self.state.elapse_time(),
         }
 
         self.renderer.draw(&self.state);
 
         true
+    }
+
+    fn resize(&mut self) {
+        self.renderer.screen.resize();
+        self.state
+            .resize(self.renderer.screen.cols, self.renderer.screen.rows);
     }
 }

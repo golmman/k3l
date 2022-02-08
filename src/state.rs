@@ -1,10 +1,15 @@
 use crate::common::Point;
+use crate::common::PIXEL_H;
+use crate::common::PIXEL_W;
 
 pub struct State {
     pub cursor_pos: Point<u16>,
     pub elapsed_time: u64,
     pub map: Map,
     pub map_pos: Point<i16>,
+
+    screen_cols: u16,
+    screen_rows: u16,
 }
 
 pub struct Map {
@@ -72,7 +77,7 @@ impl From<char> for MapTile {
 }
 
 impl State {
-    pub fn new() -> Self {
+    pub fn new(screen_cols: u16, screen_rows: u16) -> Self {
         let cursor_pos = Point::new(1, 1);
         let elapsed_time = 0;
         let map = Map::new();
@@ -83,38 +88,74 @@ impl State {
             elapsed_time,
             map,
             map_pos,
+
+            screen_cols,
+            screen_rows,
         }
     }
 
+    pub fn resize(&mut self, screen_cols: u16, screen_rows: u16) {
+        self.screen_cols = screen_cols;
+        self.screen_rows = screen_rows;
+    }
+
+    pub fn elapse_time(&mut self) {
+        self.elapsed_time += 1;
+    }
+
     pub fn move_map_left(&mut self) {
-        self.map_pos.x -= 1;
+        self.map_pos.x -= PIXEL_W as i16;
     }
 
     pub fn move_map_right(&mut self) {
-        self.map_pos.x += 1;
+        self.map_pos.x += PIXEL_W as i16;
     }
 
     pub fn move_map_up(&mut self) {
-        self.map_pos.y -= 1;
+        self.map_pos.y -= PIXEL_H as i16;
     }
 
     pub fn move_map_down(&mut self) {
-        self.map_pos.y += 1;
+        self.map_pos.y += PIXEL_H as i16;
     }
 
     pub fn move_cursor_left(&mut self) {
-        self.cursor_pos.x -= 1;
+        if self.cursor_pos.x < 1 + PIXEL_W {
+            self.move_map_right();
+            return;
+        }
+        self.cursor_pos.x -= PIXEL_W;
+
+        // align cursor to pixels
+        self.cursor_pos.x = ((self.cursor_pos.x - 1) / PIXEL_W) * PIXEL_W + PIXEL_W / 2 + 1;
     }
 
     pub fn move_cursor_right(&mut self) {
-        self.cursor_pos.x += 1;
+        if self.cursor_pos.x + PIXEL_W > (self.screen_cols / PIXEL_W) * PIXEL_W {
+            self.move_map_left();
+            return;
+        }
+        self.cursor_pos.x += PIXEL_W;
+
+        // align cursor to pixels
+        self.cursor_pos.x = ((self.cursor_pos.x - 1) / PIXEL_W) * PIXEL_W + PIXEL_W / 2 + 1;
     }
 
     pub fn move_cursor_up(&mut self) {
-        self.cursor_pos.y -= 1;
+        // TODO: align to pixel
+        if self.cursor_pos.y < 1 + PIXEL_H {
+            self.move_map_down();
+            return;
+        }
+        self.cursor_pos.y -= PIXEL_H;
     }
 
     pub fn move_cursor_down(&mut self) {
-        self.cursor_pos.y += 1;
+        // TODO: align to pixel
+        if self.cursor_pos.y + PIXEL_H > self.screen_rows {
+            self.move_map_up();
+            return;
+        }
+        self.cursor_pos.y += PIXEL_H;
     }
 }

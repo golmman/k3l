@@ -1,4 +1,44 @@
 
+```mermaid
+flowchart TB
+    main[[main]]
+    controller[controller]
+    screen[screen]
+    state[state]
+    renderer[renderer]
+
+    main --> controller
+
+    controller --> renderer
+    controller --> state
+
+    renderer --> screen
+```
+
+```
+IIIII
+IIIII
+
+IIIIIII
+IIIIIII
+IIIIIII
+```
+
+cursor size is 7 x 17, so what are th best sizes?
+```
+7*0, 17*0 --- 0
+7*2, 17*1 --- -3
+7*3, 17*1 --- 4
+7*5, 17*2 --- 1
+7*7, 17*3 --- -2
+7*10, 17*4 --- 2
+7*12, 17*5 --- -1
+7*14, 17*6 --- -4
+7*15, 17*6 --- 3
+7*17, 17*7 --- 0
+7*19, 17*8 --- -3
+```
+
 
 521 x 420
 1.24047619048

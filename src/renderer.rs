@@ -2,7 +2,7 @@ use std::cmp::max;
 use std::cmp::min;
 use std::io::Write;
 
-use termion::color::Fg;
+use termion::color::Bg;
 use termion::color::Green;
 use termion::color::Reset;
 
@@ -53,8 +53,8 @@ impl Renderer {
             self.screen_buffer,
             "{}{}X{}",
             termion::cursor::Goto(state.cursor_pos.x, state.cursor_pos.y),
-            Fg(Green),
-            Fg(Reset),
+            Bg(Green),
+            Bg(Reset),
         )
         .unwrap();
     }
@@ -83,7 +83,7 @@ impl Renderer {
                 self.screen_buffer,
                 "{}{}",
                 termion::cursor::Goto(1, y + 1),
-                ".".repeat(self.screen.cols.into())
+                "[.]".repeat((self.screen.cols / 3).into())
             )
             .unwrap();
         }

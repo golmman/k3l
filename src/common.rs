@@ -1,6 +1,9 @@
 use std::cmp::max;
 use std::cmp::min;
 
+pub const PIXEL_W: u16 = 3;
+pub const PIXEL_H: u16 = 1;
+
 pub struct Point<W> {
     pub x: W,
     pub y: W,
