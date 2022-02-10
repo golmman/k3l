@@ -1,7 +1,7 @@
 use std::fs::read_to_string;
 
 use crate::controller::Controller;
-use crate::tile_config::{TileKind, load_tile_config};
+use crate::tile_config::{TileConfig, TileKind};
 
 mod common;
 mod controller;
@@ -16,13 +16,28 @@ fn main() {
 
     println!("{}", TileKind::DirtFloor as i32);
     println!("{}", TileKind::DirtWall as i32);
-    println!("{}", tiles_config["dirt_wall"]["bgcolor"].as_str().unwrap());
+    println!(
+        "{}",
+        tiles_config["dirt_wall"]["bgcolor"]
+            .as_str()
+            .unwrap()
+    );
     println!("{}", tiles_config["multiline_test"]["name"]);
-    println!("{}", tiles_config["multiline_test"]["pp"].get(1).unwrap().get(1).unwrap());
+    println!(
+        "{}",
+        tiles_config["multiline_test"]["pp"]
+            .get(1)
+            .unwrap()
+            .get(1)
+            .unwrap()
+    );
     println!("{:?}", tiles_config.get("nonsense"));
 
-    let tc = load_tile_config("tile_config.toml");
+    let tc = TileConfig::from("tile_config.toml");
     println!("{tc:#?}");
+
+    println!("{:#?}", tc.get(TileKind::LavaFloor));
+
     return;
 
     let mut controller = Controller::new();

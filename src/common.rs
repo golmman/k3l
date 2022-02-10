@@ -3,6 +3,7 @@ use std::cmp::min;
 
 pub const PIXEL_W: u16 = 3;
 pub const PIXEL_H: u16 = 1;
+pub const FRAMES_PER_SECOND: u16 = 8;
 
 pub struct Point<W> {
     pub x: W,

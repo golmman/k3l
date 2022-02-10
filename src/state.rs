@@ -70,7 +70,10 @@ pub struct Tile {
 
 impl Tile {
     pub fn new(displayed_char: char) -> Self {
-        Self { displayed_char, bg_color: Box::new(termion::color::Black) }
+        Self {
+            displayed_char,
+            bg_color: Box::new(termion::color::Black),
+        }
     }
 }
 

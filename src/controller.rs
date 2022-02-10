@@ -9,6 +9,7 @@ use std::time::Duration;
 use termion::event::Key;
 use termion::input::TermRead;
 
+use crate::common::FRAMES_PER_SECOND;
 use crate::common::Point;
 use crate::renderer::Renderer;
 use crate::state::State;
@@ -59,7 +60,7 @@ impl Controller {
 
     fn send_elapse_events(sender: SyncSender<TerminalEvent>) {
         loop {
-            sleep(Duration::from_millis(125));
+            sleep(Duration::from_millis(1000 / FRAMES_PER_SECOND as u64));
             let _ = sender.send(TerminalEvent::Elapse);
         }
     }

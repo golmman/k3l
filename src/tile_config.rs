@@ -1,13 +1,17 @@
 use std::fs::read_to_string;
+use std::path::Path;
 
 use termion::color::Color;
 
-const TILE_KIND_KEYS: [&str; 2] = ["dirt_floor", "dirt_wall"];
+use crate::common::{FRAMES_PER_SECOND, PIXEL_W};
+
+const TILE_KIND_KEYS: [&str; 3] = ["dirt_floor", "dirt_wall", "lava_floor"];
 
 #[derive(Clone, Copy, Debug)]
 pub enum TileKind {
     DirtFloor,
     DirtWall,
+    LavaFloor,
 }
 
 impl From<&str> for TileKind {
@@ -15,6 +19,7 @@ impl From<&str> for TileKind {
         match key {
             "dirt_floor" => TileKind::DirtFloor,
             "dirt_wall" => TileKind::DirtWall,
+            "lava_floor" => TileKind::LavaFloor,
             _ => panic!(),
         }
     }
@@ -125,17 +130,54 @@ impl From<String> for TileColor {
 }
 
 #[derive(Clone, Debug)]
-pub struct Tile2 {
+pub struct Pixel {
+    frames: Vec<String>,
+}
+
+impl From<Vec<&str>> for Pixel {
+    fn from(f: Vec<&str>) -> Self {
+        let frames_str = match f.len() {
+            8 => f,
+            4 => vec![f[0], f[0], f[1], f[1], f[2], f[2], f[3], f[3]],
+            2 => vec![f[0], f[0], f[0], f[0], f[1], f[1], f[1], f[1]],
+            1 => vec![f[0], f[0], f[0], f[0], f[0], f[0], f[0], f[0]],
+            _ => panic!("A pixel must have 1, 2, 4 or 8 frames defined."),
+        };
+
+        let frames = frames_str
+            .into_iter()
+            .map(String::from)
+            .collect();
+
+        Self { frames }
+    }
+}
+
+impl From<&toml::Value> for Pixel {
+    fn from(value: &toml::Value) -> Self {
+        let str_vec: Vec<&str> = value
+            .as_array()
+            .unwrap()
+            .into_iter()
+            .map(|x| x.as_str().unwrap())
+            .collect();
+
+        Pixel::from(str_vec)
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct Tile {
     bgcolor: TileColor,
     fgcolor: TileColor,
     name: String,
-    pixels: Vec<Vec<String>>,
+    pixels: Vec<Pixel>,
     floor_state: TileState,
     block_state: TileState,
     kind: TileKind,
 }
 
-impl Tile2 {
+impl Tile {
     pub fn new() -> Self {
         Self {
             bgcolor: TileColor::Black,
@@ -149,42 +191,51 @@ impl Tile2 {
     }
 }
 
-pub fn load_tile_config(file_path: &str) -> Vec<Tile2> {
-    let mut tiles = vec![Tile2::new(); TILE_KIND_KEYS.len()];
+#[derive(Debug)]
+pub struct TileConfig {
+    tiles: Vec<Tile>,
+}
 
-    let tile_config_string = read_to_string("tile_config.toml").unwrap();
-    let tile_config: toml::value::Value = toml::from_str(&tile_config_string).unwrap();
-
-    for key in TILE_KIND_KEYS {
-        let t = &tile_config[key];
-
-        let bgcolor = TileColor::from(t["bgcolor"].as_str().unwrap());
-        let fgcolor = TileColor::from(t["fgcolor"].as_str().unwrap());
-        let name = t["name"].as_str().unwrap().to_string();
-        let floor_state = TileState::from(t["floor_state"].as_str().unwrap());
-        let block_state = TileState::from(t["block_state"].as_str().unwrap());
-        let kind = TileKind::from(key);
-
-        let mut pixels = Vec::new();
-        while let Some(pixels_values) = t.get(format!("pixels{}", pixels.len())) {
-            let mut p = Vec::new();
-            let pixels_array = pixels_values.as_array().unwrap();
-            for pixel in pixels_array {
-                p.push(pixel.as_str().unwrap().to_string());
-            }
-            pixels.push(p);
-        }
-
-        tiles[kind as usize] = Tile2 {
-            bgcolor,
-            fgcolor,
-            name,
-            pixels,
-            floor_state,
-            block_state,
-            kind,
-        }
+impl TileConfig {
+    pub fn get(&self, tile_kind: TileKind) -> &Tile {
+        &self.tiles[tile_kind as usize]
     }
+}
 
-    tiles
+impl<P: AsRef<Path>> From<P> for TileConfig {
+    fn from(path: P) -> Self {
+        let mut tiles = vec![Tile::new(); TILE_KIND_KEYS.len()];
+
+        let tile_config_string = read_to_string("tile_config.toml").unwrap();
+        let tile_config: toml::value::Value = toml::from_str(&tile_config_string).unwrap();
+
+        for key in TILE_KIND_KEYS {
+            let t = &tile_config[key];
+
+            let bgcolor = TileColor::from(t["bgcolor"].as_str().unwrap());
+            let fgcolor = TileColor::from(t["fgcolor"].as_str().unwrap());
+            let name = t["name"].as_str().unwrap().to_string();
+            let floor_state = TileState::from(t["floor_state"].as_str().unwrap());
+            let block_state = TileState::from(t["block_state"].as_str().unwrap());
+            let kind = TileKind::from(key);
+            let pixels = t["pixels"]
+                .as_array()
+                .unwrap()
+                .into_iter()
+                .map(Pixel::from)
+                .collect();
+
+            tiles[kind as usize] = Tile {
+                bgcolor,
+                fgcolor,
+                name,
+                pixels,
+                floor_state,
+                block_state,
+                kind,
+            }
+        }
+
+        Self { tiles }
+    }
 }
