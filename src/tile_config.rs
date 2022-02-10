@@ -149,7 +149,9 @@ impl From<Vec<&str>> for Pixel {
             .map(String::from)
             .collect();
 
-        Self { frames }
+        Self {
+            frames,
+        }
     }
 }
 
@@ -167,7 +169,7 @@ impl From<&toml::Value> for Pixel {
 }
 
 #[derive(Clone, Debug)]
-pub struct Tile {
+pub struct BaseTile {
     bgcolor: TileColor,
     fgcolor: TileColor,
     name: String,
@@ -177,7 +179,7 @@ pub struct Tile {
     kind: TileKind,
 }
 
-impl Tile {
+impl BaseTile {
     pub fn new() -> Self {
         Self {
             bgcolor: TileColor::Black,
@@ -193,18 +195,18 @@ impl Tile {
 
 #[derive(Debug)]
 pub struct TileConfig {
-    tiles: Vec<Tile>,
+    tiles: Vec<BaseTile>,
 }
 
 impl TileConfig {
-    pub fn get(&self, tile_kind: TileKind) -> &Tile {
+    pub fn get(&self, tile_kind: TileKind) -> &BaseTile {
         &self.tiles[tile_kind as usize]
     }
 }
 
 impl<P: AsRef<Path>> From<P> for TileConfig {
     fn from(path: P) -> Self {
-        let mut tiles = vec![Tile::new(); TILE_KIND_KEYS.len()];
+        let mut tiles = vec![BaseTile::new(); TILE_KIND_KEYS.len()];
 
         let tile_config_string = read_to_string("tile_config.toml").unwrap();
         let tile_config: toml::value::Value = toml::from_str(&tile_config_string).unwrap();
@@ -225,7 +227,7 @@ impl<P: AsRef<Path>> From<P> for TileConfig {
                 .map(Pixel::from)
                 .collect();
 
-            tiles[kind as usize] = Tile {
+            tiles[kind as usize] = BaseTile {
                 bgcolor,
                 fgcolor,
                 name,
