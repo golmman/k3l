@@ -1,3 +1,5 @@
+use termion::color::Color;
+
 use crate::common::Point;
 use crate::common::PIXEL_H;
 use crate::common::PIXEL_W;
@@ -13,7 +15,7 @@ pub struct State {
 }
 
 pub struct Map {
-    pub tiles: Vec<Vec<MapTile>>,
+    pub tiles: Vec<Vec<Tile>>,
 }
 
 impl Map {
@@ -44,13 +46,13 @@ impl Map {
 
 impl From<String> for Map {
     fn from(chars: String) -> Self {
-        let mut tiles = Vec::<Vec<MapTile>>::new();
+        let mut tiles = Vec::<Vec<Tile>>::new();
 
         for chars_row in chars.split_terminator("ENDL") {
-            let mut tiles_row = Vec::<MapTile>::new();
+            let mut tiles_row = Vec::<Tile>::new();
 
             for chars_col in chars_row.chars() {
-                tiles_row.push(MapTile::from(chars_col));
+                tiles_row.push(Tile::from(chars_col));
             }
 
             tiles.push(tiles_row);
@@ -60,19 +62,21 @@ impl From<String> for Map {
     }
 }
 
-pub struct MapTile {
+pub struct Tile {
     pub displayed_char: char,
+
+    pub bg_color: Box<dyn Color>,
 }
 
-impl MapTile {
+impl Tile {
     pub fn new(displayed_char: char) -> Self {
-        Self { displayed_char }
+        Self { displayed_char, bg_color: Box::new(termion::color::Black) }
     }
 }
 
-impl From<char> for MapTile {
+impl From<char> for Tile {
     fn from(displayed_char: char) -> Self {
-        MapTile::new(displayed_char)
+        Tile::new(displayed_char)
     }
 }
 

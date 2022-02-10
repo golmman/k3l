@@ -2,17 +2,41 @@
 ```mermaid
 flowchart TB
     main[[main]]
-    controller[controller]
-    screen[screen]
-    state[state]
-    renderer[renderer]
+    Config[Config]
+    TileConfig[TileConfig]
+    KeyConfig[KeyConfig]
+    Map[Map]
+    Screen[Screen]
+    State[State]
+    Renderer[Renderer]
 
-    main --> controller
+    subgraph Controller
+        direction TB
+        EventHandler[/KeyEventHandler/]
+        KeyEventHandler[/KeyEventHandler/]
+        ResizeEventHandler[/ResizeEventHandler/]
+        ElapseEventHandler[/ElapseEventHandler/]
 
-    controller --> renderer
-    controller --> state
+        EventHandler --> KeyEventHandler
+        EventHandler --> ResizeEventHandler
+        EventHandler --> ElapseEventHandler
+    end
 
-    renderer --> screen
+    main --> Controller
+
+    Controller --> Renderer
+    Controller --> State
+    Controller --> Config
+
+    Config --> TileConfig
+    Config --> KeyConfig
+
+    Renderer --> Screen
+
+    State -.-> |cols, rows| Screen
+    State --> Map
+
+    Map -.-> TileConfig
 ```
 
 ```

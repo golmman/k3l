@@ -1,0 +1,35 @@
+[dirt_wall]
+bgcolor = "black"
+fgcolor = "light_black"
+name = "dirt wall"
+pixels0 = ["###"]
+floor_state = "solid"
+block_state = "solid"
+
+[dirt_floor]
+bgcolor = "black"
+fgcolor = "light_black"
+name = "dirt floor"
+pixels0 = ["   ", " . "]
+pixels1 = ["   "]
+pixels2 = ["'  "]
+pixels3 = [" . "]
+pixels4 = ["  '"]
+pixels5 = [",  "]
+pixels6 = [", ."]
+pixels7 = [",: "]
+pixels8 = [" :."]
+pixels9 = ["' :"]
+floor_state = "solid"
+block_state = "gas"
+
+
+[multiline_test]
+name = """\
+    Hello \
+    World\
+"""
+pp = [
+    [1, 2, 3],
+    [4, 5, 6],
+]
