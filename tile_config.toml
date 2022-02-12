@@ -1,14 +1,14 @@
 [dirt_wall]
-bgcolor = "black"
-fgcolor = "light_black"
+bgcolor = 0
+fgcolor = 8
 name = "dirt wall"
 floor_state = "solid"
 block_state = "solid"
 pixels = [["###"]]
 
 [dirt_floor]
-bgcolor = "black"
-fgcolor = "light_black"
+bgcolor = 8
+fgcolor = 7
 name = "dirt floor"
 floor_state = "solid"
 block_state = "gas"
@@ -26,8 +26,8 @@ pixels = [
 ]
 
 [lava_floor]
-bgcolor = "red"
-fgcolor = "black"
+bgcolor = 1
+fgcolor = 0
 name = "lava floor"
 floor_state = "solid"
 block_state = "gas"

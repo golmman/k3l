@@ -28,7 +28,8 @@ impl Renderer {
 
     pub fn clear_screen(&mut self) {
         self.screen_buffer.clear();
-        write!(self.screen_buffer, "{}", termion::clear::All,).unwrap();
+        // TODO: don't use clear::All directive to avoid flickering
+        //write!(self.screen_buffer, "{}", termion::clear::All,).unwrap();
     }
 
     pub fn draw(&mut self, state: &State) {
@@ -48,6 +49,7 @@ impl Renderer {
         self.screen.flush().unwrap();
     }
 
+    // TODO: don't use Goto directives to avoid flickering
     fn draw_cursor(&mut self, state: &State) {
         write!(
             self.screen_buffer,
@@ -95,11 +97,10 @@ impl Renderer {
         let screen_cols = self.screen.cols;
         let screen_rows = self.screen.rows;
 
-        for row in 0..state.map.tiles.len() {
+        for row in 0..state.map.height {
             let row = row as u16;
-            let full_row = state.map.get_row(row);
 
-            let displayed_row = frame_string(&full_row, map_x, screen_cols);
+            let displayed_row = state.get_map_row(row);
 
             if displayed_row.is_empty() {
                 continue;

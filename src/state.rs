@@ -1,85 +1,64 @@
+use std::io::Write;
+use termion::color::Bg;
 use termion::color::Color;
+use termion::color::Fg;
 
+use crate::color::reset;
 use crate::common::Point;
+use crate::common::FRAMES_PER_SECOND;
 use crate::common::PIXEL_H;
 use crate::common::PIXEL_W;
+use crate::common::TEST_MAP_HEIGHT;
+use crate::common::TEST_MAP_TILES;
+use crate::common::TEST_MAP_WIDTH;
+use crate::common::calc_array_bounds;
+use crate::tile_config::BaseTile;
+use crate::tile_config::TileConfig;
+use crate::tile_config::TileKind;
 
 pub struct State {
     pub cursor_pos: Point<u16>,
     pub elapsed_time: u64,
     pub map: Map,
     pub map_pos: Point<i16>,
+    pub tile_config: TileConfig,
 
     screen_cols: u16,
     screen_rows: u16,
 }
 
 pub struct Map {
-    pub tiles: Vec<Vec<Tile>>,
+    pub tiles: Vec<Tile>,
+    pub width: u16,
+    pub height: u16,
 }
 
 impl Map {
-    pub fn new() -> Self {
-        let mut map = String::new();
-        map.push_str(r#" ___________________________ ENDL"#);
-        map.push_str(r#"|                           |ENDL"#);
-        map.push_str(r#"|        _    _____ _       |ENDL"#);
-        map.push_str(r#"|       | | _|___ /| |      |ENDL"#);
-        map.push_str(r#"|       | |/ / |_ \| |      |ENDL"#);
-        map.push_str(r#"|       |   < ___) | |      |ENDL"#);
-        map.push_str(r#"|       |_|\_\____/|_|      |ENDL"#);
-        map.push_str(r#"|                           |ENDL"#);
-        map.push_str(r#"|___________________________|ENDL"#);
-        Map::from(map)
-    }
+    pub fn new(tile_kinds: Vec<u8>, width: u16, height: u16) -> Self {
+        let tiles = tile_kinds
+            .into_iter()
+            .map(Tile::from)
+            .collect();
 
-    pub fn get_row(&self, row: u16) -> String {
-        let mut s = String::new();
-
-        for map_tile in &self.tiles[row as usize] {
-            s.push(map_tile.displayed_char);
+        Self {
+            tiles,
+            width,
+            height,
         }
-
-        s
-    }
-}
-
-impl From<String> for Map {
-    fn from(chars: String) -> Self {
-        let mut tiles = Vec::<Vec<Tile>>::new();
-
-        for chars_row in chars.split_terminator("ENDL") {
-            let mut tiles_row = Vec::<Tile>::new();
-
-            for chars_col in chars_row.chars() {
-                tiles_row.push(Tile::from(chars_col));
-            }
-
-            tiles.push(tiles_row);
-        }
-
-        Self { tiles }
     }
 }
 
 pub struct Tile {
-    pub displayed_char: char,
-
-    pub bg_color: Box<dyn Color>,
+    tile_kind: TileKind,
+    pixel_index: usize,
 }
 
-impl Tile {
-    pub fn new(displayed_char: char) -> Self {
+impl From<u8> for Tile {
+    fn from(s: u8) -> Self {
         Self {
-            displayed_char,
-            bg_color: Box::new(termion::color::Black),
+            tile_kind: unsafe { std::mem::transmute(s) },
+            pixel_index: 0,
         }
-    }
-}
-
-impl From<char> for Tile {
-    fn from(displayed_char: char) -> Self {
-        Tile::new(displayed_char)
     }
 }
 
@@ -87,18 +66,42 @@ impl State {
     pub fn new(screen_cols: u16, screen_rows: u16) -> Self {
         let cursor_pos = Point::new(1, 1);
         let elapsed_time = 0;
-        let map = Map::new();
-        let map_pos = Point::new(15, 6);
+        let tile_config = TileConfig::from("tile_config.toml");
+        let map = Map::new(Vec::from(TEST_MAP_TILES), TEST_MAP_WIDTH, TEST_MAP_HEIGHT);
+        let map_pos = Point::new(1, 6);
 
         Self {
             cursor_pos,
             elapsed_time,
             map,
             map_pos,
+            tile_config,
 
             screen_cols,
             screen_rows,
         }
+    }
+
+    pub fn get_map_row(&self, row: u16) -> String {
+        let mut s = String::new();
+
+        let (skip, take) = calc_array_bounds(self.map.width, self.map_pos.x, self.screen_cols);
+
+        for i in skip..take {
+            let index = self.map.width * row + i;
+
+            let tile_kind = self.map.tiles[index as usize].tile_kind;
+            let pixel_index = self.map.tiles[index as usize].pixel_index;
+            let frame = (self.elapsed_time % FRAMES_PER_SECOND as u64) as usize;
+
+            let tile_str = &self.tile_config.get(tile_kind).pixels[pixel_index].frames[frame];
+            let color = &self.tile_config.get(tile_kind).color;
+            let reset = reset();
+
+            s.push_str(&format!("{color}{tile_str}{reset}"));
+        }
+
+        s
     }
 
     pub fn resize(&mut self, screen_cols: u16, screen_rows: u16) {
