@@ -1,7 +1,9 @@
 // usage of termions 'Color' module is awkward
 // see https://gitlab.redox-os.org/redox-os/termion/-/issues/123
 
-// see https://stackoverflow.com/questions/4842424/list-of-ansi-color-escape-sequences
+// see
+// https://stackoverflow.com/questions/4842424/list-of-ansi-color-escape-sequences
+// https://gist.github.com/fnky/458719343aabd01cfb17a3a4f7296797
 
 pub fn color(bg_color: u8, fg_color: u8) -> String {
     format!("\x1b[38;5;{fg_color};48;5;{bg_color}m")

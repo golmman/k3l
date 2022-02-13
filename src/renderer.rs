@@ -8,6 +8,7 @@ use termion::color::Reset;
 
 use crate::common::frame_string;
 use crate::screen::DefaultScreen;
+use crate::screen::ScreenChar;
 use crate::state::State;
 
 pub struct Renderer {
@@ -26,100 +27,92 @@ impl Renderer {
         }
     }
 
-    pub fn clear_screen(&mut self) {
-        self.screen_buffer.clear();
-        // TODO: don't use clear::All directive to avoid flickering
-        //write!(self.screen_buffer, "{}", termion::clear::All,).unwrap();
-    }
-
-    pub fn draw(&mut self, state: &State) {
-        self.clear_screen();
+    pub fn display(&mut self, state: &State) {
+        self.screen.clear();
 
         self.draw_floor();
         self.draw_map(state);
         self.draw_debug_info(state);
         self.draw_cursor(state);
 
-        self.screen_buffer.flush().unwrap();
-
-        // double buffering
-        self.screen
-            .write_all(&self.screen_buffer)
-            .unwrap();
-        self.screen.flush().unwrap();
+        self.screen.display();
     }
 
-    // TODO: don't use Goto directives to avoid flickering
     fn draw_cursor(&mut self, state: &State) {
-        write!(
-            self.screen_buffer,
-            "{}{}X{}",
-            termion::cursor::Goto(state.cursor_pos.x, state.cursor_pos.y),
-            Bg(Green),
-            Bg(Reset),
-        )
-        .unwrap();
+        let cursor = vec![vec![ScreenChar::new('X', 2, 0)]];
+
+        self.screen.draw(
+            &cursor,
+            state.cursor_pos.x as i16,
+            state.cursor_pos.y as i16,
+        );
     }
 
     fn draw_debug_info(&mut self, state: &State) {
-        write!(self.screen_buffer, "{}", termion::cursor::Goto(10, 3),).unwrap();
-        write!(
-            self.screen_buffer,
+        let state_info_str = format!(
             "cols: {}, rows: {}, time: {}",
             self.screen.cols, self.screen.rows, state.elapsed_time,
-        )
-        .unwrap();
+        );
+        let state_info = ScreenChar::from_str(&state_info_str);
+        self.screen.draw(&state_info, 10, 3);
 
-        write!(self.screen_buffer, "{}", termion::cursor::Goto(10, 4),).unwrap();
-        write!(
-            self.screen_buffer,
-            "map_x: {}, map_y: {}",
-            state.map_pos.x, state.map_pos.y,
-        )
-        .unwrap();
+        let pos_info_str = format!(
+            "map_x: {}, map_y: {}, cursor_x: {}, cursor_y: {}",
+            state.map_pos.x, state.map_pos.y, state.cursor_pos.x, state.cursor_pos.y
+        );
+        let pos_info = ScreenChar::from_str(&pos_info_str);
+        self.screen.draw(&pos_info, 10, 4);
     }
 
     fn draw_floor(&mut self) {
+        let mut pixels = Vec::new();
+
         for y in 0..self.screen.rows {
-            write!(
-                self.screen_buffer,
-                "{}{}",
-                termion::cursor::Goto(1, y + 1),
-                "[.]".repeat((self.screen.cols / 3).into())
-            )
-            .unwrap();
+            let mut row = Vec::new();
+            for x in 0..self.screen.cols / 3 {
+                row.push(ScreenChar::new('[', 0, 7));
+                row.push(ScreenChar::new('-', 0, 7));
+                row.push(ScreenChar::new(']', 0, 7));
+            }
+            pixels.push(row);
         }
+
+        self.screen.draw(&pixels, 0, 0);
     }
 
     fn draw_map(&mut self, state: &State) {
-        let map_x = state.map_pos.x;
-        let map_y = state.map_pos.y;
-        let screen_cols = self.screen.cols;
-        let screen_rows = self.screen.rows;
+        let sprite = state.get_map_sprite();
 
-        for row in 0..state.map.height {
-            let row = row as u16;
+        self.screen.draw(&sprite, state.map_pos.x, state.map_pos.y);
 
-            let displayed_row = state.get_map_row(row);
+        //let map_x = state.map_pos.x;
+        //let map_y = state.map_pos.y;
+        //let screen_cols = self.screen.cols;
+        //let screen_rows = self.screen.rows;
 
-            if displayed_row.is_empty() {
-                continue;
-            }
+        //for row in 0..state.map.height {
+        //    let row = row as u16;
 
-            if map_y + (row as i16) < 1 || map_y + (row as i16) > screen_rows as i16 {
-                continue;
-            }
+        //    let displayed_row = String:: new(); //state.get_map_row(row);
 
-            let goto_x = min(screen_cols, max(1, map_x) as u16) as u16;
-            let goto_y = min(screen_rows, max(1, map_y + row as i16) as u16) as u16;
+        //    if displayed_row.is_empty() {
+        //        continue;
+        //    }
 
-            write!(
-                self.screen_buffer,
-                "{}{}",
-                termion::cursor::Goto(goto_x, goto_y),
-                displayed_row,
-            )
-            .unwrap();
-        }
+        //    if map_y + (row as i16) < 1 || map_y + (row as i16) > screen_rows as i16 {
+        //        continue;
+        //    }
+
+        //    let goto_x = min(screen_cols, max(1, map_x) as u16) as u16;
+        //    let goto_y = min(screen_rows, max(1, map_y + row as i16) as u16) as u16;
+
+        //    write!(
+        //        self.screen_buffer,
+        //        "{}{}",
+        //        termion::cursor::Goto(goto_x, goto_y),
+        //        displayed_row,
+        //    )
+        //    .unwrap();
+        //}
     }
 }

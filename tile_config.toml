@@ -1,18 +1,18 @@
 [dirt_wall]
-bgcolor = 0
-fgcolor = 8
+bg_color = 0
+fg_color = 8
 name = "dirt wall"
 floor_state = "solid"
 block_state = "solid"
-pixels = [["###"]]
+tile_strings = [["###"]]
 
 [dirt_floor]
-bgcolor = 8
-fgcolor = 7
+bg_color = 8
+fg_color = 7
 name = "dirt floor"
 floor_state = "solid"
 block_state = "gas"
-pixels = [
+tile_strings = [
     ["   "],
     ["   "],
     ["'  "],
@@ -26,12 +26,12 @@ pixels = [
 ]
 
 [lava_floor]
-bgcolor = 1
-fgcolor = 0
+bg_color = 1
+fg_color = 0
 name = "lava floor"
 floor_state = "solid"
 block_state = "gas"
-pixels = [
+tile_strings = [
     [".  ", " '."],
     ["~  ", " ~ ", "  ~", "   "],
     ["<  ", " ^ ", "  >", " v "],

@@ -4,6 +4,7 @@ use termion::color::Color;
 use termion::color::Fg;
 
 use crate::color::reset;
+use crate::common::calc_array_bounds;
 use crate::common::Point;
 use crate::common::FRAMES_PER_SECOND;
 use crate::common::PIXEL_H;
@@ -11,7 +12,8 @@ use crate::common::PIXEL_W;
 use crate::common::TEST_MAP_HEIGHT;
 use crate::common::TEST_MAP_TILES;
 use crate::common::TEST_MAP_WIDTH;
-use crate::common::calc_array_bounds;
+use crate::screen::ScreenChar;
+use crate::screen::Sprite;
 use crate::tile_config::BaseTile;
 use crate::tile_config::TileConfig;
 use crate::tile_config::TileKind;
@@ -50,14 +52,14 @@ impl Map {
 
 pub struct Tile {
     tile_kind: TileKind,
-    pixel_index: usize,
+    tile_string_alternative: usize,
 }
 
 impl From<u8> for Tile {
     fn from(s: u8) -> Self {
         Self {
             tile_kind: unsafe { std::mem::transmute(s) },
-            pixel_index: 0,
+            tile_string_alternative: 0,
         }
     }
 }
@@ -82,26 +84,36 @@ impl State {
         }
     }
 
-    pub fn get_map_row(&self, row: u16) -> String {
-        let mut s = String::new();
+    pub fn get_map_sprite(&self) -> Sprite {
+        let mut sprite = Sprite::new();
 
-        let (skip, take) = calc_array_bounds(self.map.width, self.map_pos.x, self.screen_cols);
+        for y in 0..self.map.height {
 
-        for i in skip..take {
-            let index = self.map.width * row + i;
+            let mut sprite_row = Vec::new();
+            for x in 0..self.map.width {
+                let i = (self.map.width * y + x) as usize;
+                let frame = (self.elapsed_time % FRAMES_PER_SECOND as u64) as usize;
 
-            let tile_kind = self.map.tiles[index as usize].tile_kind;
-            let pixel_index = self.map.tiles[index as usize].pixel_index;
-            let frame = (self.elapsed_time % FRAMES_PER_SECOND as u64) as usize;
+                let tile_kind = self.map.tiles[i].tile_kind;
+                let tile_string_alternative = self.map.tiles[i].tile_string_alternative;
 
-            let tile_str = &self.tile_config.get(tile_kind).pixels[pixel_index].frames[frame];
-            let color = &self.tile_config.get(tile_kind).color;
-            let reset = reset();
+                let tile_str = &self
+                    .tile_config
+                    .get(tile_kind)
+                    .tile_strings[tile_string_alternative]
+                    .frames[frame];
+                let bg_color = self.tile_config.get(tile_kind).bg_color;
+                let fg_color = self.tile_config.get(tile_kind).fg_color;
 
-            s.push_str(&format!("{color}{tile_str}{reset}"));
+                for ch in tile_str.chars() {
+                    sprite_row.push(ScreenChar::new(ch, bg_color, fg_color));
+                }
+            }
+
+            sprite.push(sprite_row);
         }
 
-        s
+        sprite
     }
 
     pub fn resize(&mut self, screen_cols: u16, screen_rows: u16) {
@@ -130,30 +142,30 @@ impl State {
     }
 
     pub fn move_cursor_left(&mut self) {
-        if self.cursor_pos.x < 1 + PIXEL_W {
+        if self.cursor_pos.x < PIXEL_W {
             self.move_map_right();
             return;
         }
         self.cursor_pos.x -= PIXEL_W;
 
         // align cursor to pixels
-        self.cursor_pos.x = ((self.cursor_pos.x - 1) / PIXEL_W) * PIXEL_W + PIXEL_W / 2 + 1;
+        self.cursor_pos.x = ((self.cursor_pos.x - 1) / PIXEL_W) * PIXEL_W + PIXEL_W / 2;
     }
 
     pub fn move_cursor_right(&mut self) {
-        if self.cursor_pos.x + PIXEL_W > (self.screen_cols / PIXEL_W) * PIXEL_W {
+        if self.cursor_pos.x + PIXEL_W > (self.screen_cols / PIXEL_W) * PIXEL_W - 1 {
             self.move_map_left();
             return;
         }
         self.cursor_pos.x += PIXEL_W;
 
         // align cursor to pixels
-        self.cursor_pos.x = ((self.cursor_pos.x - 1) / PIXEL_W) * PIXEL_W + PIXEL_W / 2 + 1;
+        self.cursor_pos.x = ((self.cursor_pos.x - 1) / PIXEL_W) * PIXEL_W + PIXEL_W / 2;
     }
 
     pub fn move_cursor_up(&mut self) {
         // TODO: align to pixel
-        if self.cursor_pos.y < 1 + PIXEL_H {
+        if self.cursor_pos.y < PIXEL_H {
             self.move_map_down();
             return;
         }
@@ -162,7 +174,7 @@ impl State {
 
     pub fn move_cursor_down(&mut self) {
         // TODO: align to pixel
-        if self.cursor_pos.y + PIXEL_H > self.screen_rows {
+        if self.cursor_pos.y + PIXEL_H > self.screen_rows - 1 {
             self.move_map_up();
             return;
         }

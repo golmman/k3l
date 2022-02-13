@@ -53,7 +53,7 @@ impl Controller {
         thread::spawn(move || Controller::send_key_events(key_sender));
         thread::spawn(move || Controller::send_resize_events(resize_sender));
 
-        self.renderer.draw(&self.state);
+        self.renderer.display(&self.state);
 
         while self.receive_event() {}
     }
@@ -103,7 +103,7 @@ impl Controller {
             TerminalEvent::Elapse => self.state.elapse_time(),
         }
 
-        self.renderer.draw(&self.state);
+        self.renderer.display(&self.state);
 
         true
     }

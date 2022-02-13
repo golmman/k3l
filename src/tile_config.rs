@@ -57,92 +57,18 @@ impl From<String> for TileState {
 }
 
 #[derive(Clone, Debug)]
-pub enum TileColor {
-    Black,
-    Blue,
-    Cyan,
-    Green,
-    LightBlack,
-    LightBlue,
-    LightCyan,
-    LightGreen,
-    LightMagenta,
-    LightRed,
-    LightWhite,
-    LightYellow,
-    Magenta,
-    Red,
-    White,
-    Yellow,
-}
-
-impl TileColor {
-    pub fn get_color(&self) -> Box<dyn Color> {
-        match self {
-            TileColor::Black => Box::new(termion::color::Black),
-            TileColor::Blue => Box::new(termion::color::Blue),
-            TileColor::Cyan => Box::new(termion::color::Cyan),
-            TileColor::Green => Box::new(termion::color::Green),
-            TileColor::LightBlack => Box::new(termion::color::LightBlack),
-            TileColor::LightBlue => Box::new(termion::color::LightBlue),
-            TileColor::LightCyan => Box::new(termion::color::LightCyan),
-            TileColor::LightGreen => Box::new(termion::color::LightGreen),
-            TileColor::LightMagenta => Box::new(termion::color::LightMagenta),
-            TileColor::LightRed => Box::new(termion::color::LightRed),
-            TileColor::LightWhite => Box::new(termion::color::LightWhite),
-            TileColor::LightYellow => Box::new(termion::color::LightYellow),
-            TileColor::Magenta => Box::new(termion::color::Magenta),
-            TileColor::Red => Box::new(termion::color::Red),
-            TileColor::White => Box::new(termion::color::White),
-            TileColor::Yellow => Box::new(termion::color::Yellow),
-            _ => panic!(),
-        }
-    }
-}
-
-impl From<&str> for TileColor {
-    fn from(key: &str) -> Self {
-        match key {
-            "black" => TileColor::Black,
-            "blue" => TileColor::Blue,
-            "cyan" => TileColor::Cyan,
-            "green" => TileColor::Green,
-            "light_black" => TileColor::LightBlack,
-            "light_blue" => TileColor::LightBlue,
-            "light_cyan" => TileColor::LightCyan,
-            "light_green" => TileColor::LightGreen,
-            "light_magenta" => TileColor::LightMagenta,
-            "light_red" => TileColor::LightRed,
-            "light_white" => TileColor::LightWhite,
-            "light_yellow" => TileColor::LightYellow,
-            "magenta" => TileColor::Magenta,
-            "red" => TileColor::Red,
-            "white" => TileColor::White,
-            "yellow" => TileColor::Yellow,
-            _ => panic!("{key}"),
-        }
-    }
-}
-
-impl From<String> for TileColor {
-    fn from(key: String) -> Self {
-        TileColor::from(key.as_str())
-    }
-}
-
-#[derive(Clone, Debug)]
-pub struct Pixel {
+pub struct TileString {
     pub frames: Vec<String>,
 }
 
-impl From<Vec<&str>> for Pixel {
+impl From<Vec<&str>> for TileString {
     fn from(f: Vec<&str>) -> Self {
         let frames_str = match f.len() {
             8 => f,
             4 => vec![f[0], f[0], f[1], f[1], f[2], f[2], f[3], f[3]],
             2 => vec![f[0], f[0], f[0], f[0], f[1], f[1], f[1], f[1]],
             1 => vec![f[0], f[0], f[0], f[0], f[0], f[0], f[0], f[0]],
-            _ => panic!("A pixel must have 1, 2, 4 or 8 frames defined."),
+            _ => panic!("A tile string must have 1, 2, 4 or 8 frames defined."),
         };
 
         let frames = frames_str
@@ -154,7 +80,7 @@ impl From<Vec<&str>> for Pixel {
     }
 }
 
-impl From<&toml::Value> for Pixel {
+impl From<&toml::Value> for TileString {
     fn from(value: &toml::Value) -> Self {
         let str_vec: Vec<&str> = value
             .as_array()
@@ -163,15 +89,16 @@ impl From<&toml::Value> for Pixel {
             .map(|x| x.as_str().unwrap())
             .collect();
 
-        Pixel::from(str_vec)
+        TileString::from(str_vec)
     }
 }
 
 #[derive(Clone, Debug)]
 pub struct BaseTile {
-    pub color: String,
+    pub bg_color: u8,
+    pub fg_color: u8,
     pub name: String,
-    pub pixels: Vec<Pixel>,
+    pub tile_strings: Vec<TileString>,
     pub floor_state: TileState,
     pub block_state: TileState,
     pub kind: TileKind,
@@ -180,9 +107,10 @@ pub struct BaseTile {
 impl BaseTile {
     pub fn new() -> Self {
         Self {
-            color: String::new(),
+            bg_color: 0,
+            fg_color: 7,
             name: String::from(""),
-            pixels: Vec::new(),
+            tile_strings: Vec::new(),
             floor_state: TileState::Solid,
             block_state: TileState::Solid,
             kind: TileKind::DirtFloor,
@@ -211,24 +139,24 @@ impl<P: AsRef<Path>> From<P> for TileConfig {
         for key in TILE_KIND_KEYS {
             let t = &tile_config[key];
 
-            let bgcolor = t["bgcolor"].as_integer().unwrap() as u8;
-            let fgcolor = t["fgcolor"].as_integer().unwrap() as u8;
-            let color = color(bgcolor, fgcolor);
+            let bg_color = t["bg_color"].as_integer().unwrap() as u8;
+            let fg_color = t["fg_color"].as_integer().unwrap() as u8;
             let name = t["name"].as_str().unwrap().to_string();
             let floor_state = TileState::from(t["floor_state"].as_str().unwrap());
             let block_state = TileState::from(t["block_state"].as_str().unwrap());
             let kind = TileKind::from(key);
-            let pixels = t["pixels"]
+            let tile_strings = t["tile_strings"]
                 .as_array()
                 .unwrap()
                 .into_iter()
-                .map(Pixel::from)
+                .map(TileString::from)
                 .collect();
 
             tiles[kind as usize] = BaseTile {
-                color,
+                bg_color,
+                fg_color,
                 name,
-                pixels,
+                tile_strings,
                 floor_state,
                 block_state,
                 kind,

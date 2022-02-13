@@ -29,6 +29,19 @@ impl<W> Point<W> {
     }
 }
 
+pub struct Rect<W> {
+    pub x: W,
+    pub y: W,
+    pub w: W,
+    pub h: W,
+}
+
+impl<W> Rect<W> {
+    pub fn new(x: W, y: W, w: W, h: W) -> Self {
+        Self { x, y, w, h }
+    }
+}
+
 pub fn frame_string(s: &str, position: i16, width: u16) -> String {
     let l = s.len() as i16;
     let p = position;
@@ -73,6 +86,20 @@ pub fn calc_array_bounds(len: u16, position: i16, width: u16) -> (u16, u16) {
     }
 
     (skip as u16, take as u16)
+}
+
+pub fn intersect(r1: Rect<i16>, r2: Rect<i16>) -> Rect<i16> {
+    let x1 = max(r1.x, r2.x);
+    let y1 = max(r1.y, r2.y);
+    let x2 = min(r1.x + r1.w, r2.x + r2.w);
+    let y2 = min(r1.y + r1.h, r2.y + r2.h);
+
+    Rect {
+        x: x1,
+        y: y1,
+        w: x2 - x1,
+        h: y2 - y1,
+    }
 }
 
 #[cfg(test)]
