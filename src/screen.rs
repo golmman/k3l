@@ -5,8 +5,7 @@ use std::io::Write;
 use termion::raw::IntoRawMode;
 use termion::raw::RawTerminal;
 
-use crate::color::color;
-use crate::color::reset;
+use crate::color::Color;
 use crate::common::intersect;
 use crate::common::RectAbsolute;
 
@@ -14,33 +13,21 @@ pub type DefaultScreen = Screen<RawTerminal<Stdout>>;
 
 #[derive(Clone, Copy)]
 pub struct Pixel {
-    ch: char,
-    bg_color: u8,
-    fg_color: u8,
-}
-
-impl Pixel {
-    pub fn new(ch: char, bg_color: u8, fg_color: u8) -> Self {
-        Self {
-            ch,
-            bg_color,
-            fg_color,
-        }
-    }
+    pub ch: char,
+    pub color: Color,
 }
 
 impl From<char> for Pixel {
     fn from(ch: char) -> Self {
         Self {
-            bg_color: 0,
-            fg_color: 7,
+            color: Color::text(),
             ch,
         }
     }
 }
 
 pub struct Sprite {
-    pub screen_chars: Vec<Pixel>,
+    pub pixels: Vec<Pixel>,
     pub width: u16,
     pub height: u16,
 }
@@ -52,15 +39,11 @@ impl From<&str> for Sprite {
         let mut screen_chars = Vec::new();
 
         for ch in s.chars() {
-            screen_chars.push(Pixel {
-                bg_color: 0,
-                fg_color: 7,
-                ch,
-            });
+            screen_chars.push(Pixel::from(ch));
         }
 
         Self {
-            screen_chars,
+            pixels: screen_chars,
             width,
             height,
         }
@@ -129,14 +112,14 @@ impl DefaultScreen {
                 let sprite_i =
                     (sprite.width as i16 * (sprite_y as i16 - y) + sprite_x as i16 - x) as usize;
 
-                self.pixel_buffer[screen_i] = sprite.screen_chars[sprite_i];
+                self.pixel_buffer[screen_i] = sprite.pixels[sprite_i];
             }
         }
     }
 
     pub fn display(&mut self) {
         let mut s = String::new();
-        let reset = reset();
+        let reset = Color::RESET;
 
         s.push_str(&self.prelude_buffer);
 
@@ -144,25 +127,23 @@ impl DefaultScreen {
             let row = y + 1;
             s.push_str(&format!("\x1b[{row};1H")); // goto (row, 1)
 
-            let mut last_color = (0, 0);
+            let mut last_color = Color::null();
             for x in 0..self.width {
                 let i = (self.width * y + x) as usize;
-                let bg_color = self.pixel_buffer[i].bg_color;
-                let fg_color = self.pixel_buffer[i].fg_color;
                 let ch = self.pixel_buffer[i].ch;
-                let color = color(bg_color, fg_color);
+                let color = self.pixel_buffer[i].color;
 
-                if last_color == (bg_color, fg_color) {
+                if last_color == color {
                     s.push(ch);
                 } else {
                     s.push_str(&format!("{reset}{color}{ch}"));
                 }
 
-                last_color = (bg_color, fg_color);
+                last_color = color;
             }
         }
 
-        s.push_str(&reset);
+        s.push_str(reset);
 
         self.main_display
             .write_all(s.as_bytes())

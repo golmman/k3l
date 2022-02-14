@@ -93,16 +93,15 @@ impl State {
                 .get(tile_kind)
                 .tile_strings[tile_string_alternative]
                 .frames[frame];
-            let bg_color = self.tile_config.get(tile_kind).bg_color;
-            let fg_color = self.tile_config.get(tile_kind).fg_color;
+            let color = self.tile_config.get(tile_kind).color;
 
             for ch in tile_str.chars() {
-                pixels.push(Pixel::new(ch, bg_color, fg_color));
+                pixels.push(Pixel { ch, color });
             }
         }
 
         Sprite {
-            screen_chars: pixels,
+            pixels,
             width,
             height,
         }

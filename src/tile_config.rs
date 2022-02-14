@@ -1,6 +1,8 @@
 use std::fs::read_to_string;
 use std::path::Path;
 
+use crate::color::Color;
+
 const TILE_KIND_KEYS: [&str; 3] = ["dirt_floor", "dirt_wall", "lava_floor"];
 
 #[derive(Clone, Copy, Debug)]
@@ -90,8 +92,7 @@ impl From<&toml::Value> for TileString {
 
 #[derive(Clone, Debug)]
 pub struct BaseTile {
-    pub bg_color: u8,
-    pub fg_color: u8,
+    pub color: Color,
     pub name: String,
     pub tile_strings: Vec<TileString>,
     pub floor_state: TileState,
@@ -102,8 +103,10 @@ pub struct BaseTile {
 impl BaseTile {
     pub fn new() -> Self {
         Self {
-            bg_color: 0,
-            fg_color: 7,
+            color: Color {
+                bg_color: 0,
+                fg_color: 7,
+            },
             name: String::from(""),
             tile_strings: Vec::new(),
             floor_state: TileState::Solid,
@@ -133,9 +136,10 @@ impl<P: AsRef<Path>> From<P> for TileConfig {
 
         for key in TILE_KIND_KEYS {
             let t = &tile_config[key];
-
             let bg_color = t["bg_color"].as_integer().unwrap() as u8;
             let fg_color = t["fg_color"].as_integer().unwrap() as u8;
+
+            let color = Color { bg_color, fg_color };
             let name = t["name"].as_str().unwrap().to_string();
             let floor_state = TileState::from(t["floor_state"].as_str().unwrap());
             let block_state = TileState::from(t["block_state"].as_str().unwrap());
@@ -148,8 +152,7 @@ impl<P: AsRef<Path>> From<P> for TileConfig {
                 .collect();
 
             tiles[kind as usize] = BaseTile {
-                bg_color,
-                fg_color,
+                color,
                 name,
                 tile_strings,
                 floor_state,

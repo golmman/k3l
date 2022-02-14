@@ -1,3 +1,4 @@
+use crate::color::Color;
 use crate::common::TILE_W;
 use crate::screen::DefaultScreen;
 use crate::screen::Pixel;
@@ -31,12 +32,18 @@ impl Renderer {
     }
 
     fn draw_cursor(&mut self, state: &State) {
-        let pixels = vec![Pixel::new('X', 2, 0)];
+        let pixels = vec![Pixel {
+            ch: 'X',
+            color: Color {
+                bg_color: 2,
+                fg_color: 0,
+            },
+        }];
         let width = 1;
         let height = 1;
 
         let cursor = Sprite {
-            screen_chars: pixels,
+            pixels,
             width,
             height,
         };
@@ -70,13 +77,13 @@ impl Renderer {
         let height = state.screen_height;
 
         for _i in 0..((width / TILE_W) * height) {
-            pixels.push(Pixel::new('[', 0, 7));
-            pixels.push(Pixel::new('-', 0, 7));
-            pixels.push(Pixel::new(']', 0, 7));
+            pixels.push(Pixel::from('['));
+            pixels.push(Pixel::from('-'));
+            pixels.push(Pixel::from(']'));
         }
 
         let sprite = Sprite {
-            screen_chars: pixels,
+            pixels,
             width,
             height,
         };
