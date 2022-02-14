@@ -1,12 +1,3 @@
-use std::cmp::max;
-use std::cmp::min;
-use std::io::Write;
-
-use termion::color::Bg;
-use termion::color::Green;
-use termion::color::Reset;
-
-use crate::common::frame_string;
 use crate::common::TILE_W;
 use crate::screen::DefaultScreen;
 use crate::screen::Pixel;
@@ -78,7 +69,7 @@ impl Renderer {
         let width = (state.screen_width / TILE_W) * TILE_W;
         let height = state.screen_height;
 
-        for i in 0..((width / TILE_W) * height) {
+        for _i in 0..((width / TILE_W) * height) {
             pixels.push(Pixel::new('[', 0, 7));
             pixels.push(Pixel::new('-', 0, 7));
             pixels.push(Pixel::new(']', 0, 7));

@@ -1,4 +1,3 @@
-use std::cmp::max;
 use std::io::stdout;
 use std::io::Stdout;
 use std::io::Write;
@@ -145,7 +144,7 @@ impl DefaultScreen {
             let row = y + 1;
             s.push_str(&format!("\x1b[{row};1H")); // goto (row, 1)
 
-            let mut last_color = (0 as u8, 0 as u8);
+            let mut last_color = (0, 0);
             for x in 0..self.width {
                 let i = (self.width * y + x) as usize;
                 let bg_color = self.pixel_buffer[i].bg_color;
@@ -163,7 +162,7 @@ impl DefaultScreen {
             }
         }
 
-        s.push_str(&format!("{reset}"));
+        s.push_str(&reset);
 
         self.main_display
             .write_all(s.as_bytes())

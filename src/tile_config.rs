@@ -1,11 +1,6 @@
 use std::fs::read_to_string;
 use std::path::Path;
 
-use termion::color::{Color, Fg, Bg, Black};
-
-use crate::color::color;
-use crate::common::{FRAMES_PER_SECOND, TILE_W};
-
 const TILE_KIND_KEYS: [&str; 3] = ["dirt_floor", "dirt_wall", "lava_floor"];
 
 #[derive(Clone, Copy, Debug)]
@@ -85,7 +80,7 @@ impl From<&toml::Value> for TileString {
         let str_vec: Vec<&str> = value
             .as_array()
             .unwrap()
-            .into_iter()
+            .iter()
             .map(|x| x.as_str().unwrap())
             .collect();
 
@@ -148,7 +143,7 @@ impl<P: AsRef<Path>> From<P> for TileConfig {
             let tile_strings = t["tile_strings"]
                 .as_array()
                 .unwrap()
-                .into_iter()
+                .iter()
                 .map(TileString::from)
                 .collect();
 

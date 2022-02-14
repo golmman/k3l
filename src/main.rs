@@ -1,9 +1,4 @@
-use std::fs::read_to_string;
-
 use crate::controller::Controller;
-use crate::tile_config::{TileConfig, TileKind};
-
-use self::state::State;
 
 mod color;
 mod common;

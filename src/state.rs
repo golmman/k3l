@@ -1,20 +1,12 @@
-use std::io::Write;
-use termion::color::Bg;
-use termion::color::Color;
-use termion::color::Fg;
-
-use crate::color::reset;
-use crate::common::calc_array_bounds;
 use crate::common::Point;
 use crate::common::FRAMES_PER_SECOND;
-use crate::common::TILE_H;
-use crate::common::TILE_W;
 use crate::common::TEST_MAP_HEIGHT;
 use crate::common::TEST_MAP_TILES;
 use crate::common::TEST_MAP_WIDTH;
+use crate::common::TILE_H;
+use crate::common::TILE_W;
 use crate::screen::Pixel;
 use crate::screen::Sprite;
-use crate::tile_config::BaseTile;
 use crate::tile_config::TileConfig;
 use crate::tile_config::TileKind;
 

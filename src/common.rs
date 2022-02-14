@@ -36,53 +36,6 @@ pub struct RectAbsolute<W> {
     pub x2: W,
     pub y2: W,
 }
-
-pub fn frame_string(s: &str, position: i16, width: u16) -> String {
-    let l = s.len() as i16;
-    let p = position;
-    let w = width as i16;
-
-    let skip = max(0, 1 - p);
-    let take = min(min(w, l), min(w - p + 1, l + p - 1));
-
-    if skip >= l || take <= 0 {
-        return "".to_string();
-    }
-
-    let frame_string: String = s
-        .chars()
-        .skip(skip as usize)
-        .take(take as usize)
-        .collect();
-
-    frame_string
-}
-
-// similar to the function above, picture it like this:
-//
-//    position (=-4)   width (=12, e.g. screen/terminal width)
-//           \      .----^-----.
-//            \    |            |
-//             some_string
-//             '---.-----'
-//                len (=11)
-//
-// results in skip=5, take=6; so (5, 6)
-pub fn calc_array_bounds(len: u16, position: i16, width: u16) -> (u16, u16) {
-    let l = len as i16;
-    let p = position;
-    let w = width as i16;
-
-    let skip = max(0, 1 - p);
-    let take = min(min(w, l), min(w - p + 1, l + p - 1));
-
-    if skip >= l || take <= 0 {
-        return (0, 0);
-    }
-
-    (skip as u16, take as u16)
-}
-
 pub fn intersect(r1: &RectAbsolute<i16>, r2: &RectAbsolute<i16>) -> RectAbsolute<i16> {
     let x1 = max(r1.x1, r2.x1);
     let y1 = max(r1.y1, r2.y1);
@@ -97,50 +50,5 @@ mod test {
     use super::*;
 
     #[test]
-    fn test_calc_array_bounds() {
-        assert_eq!((0, 0), calc_array_bounds(10, 7, 5));
-        assert_eq!((0, 4), calc_array_bounds(10, 2, 5));
-        assert_eq!((0, 5), calc_array_bounds(10, 1, 5));
-
-        assert_eq!((1, 5), calc_array_bounds(10, 0, 5));
-        assert_eq!((2, 5), calc_array_bounds(10, -1, 5));
-
-        assert_eq!((7, 3), calc_array_bounds(10, -6, 5));
-        assert_eq!((0, 0), calc_array_bounds(10, -60, 5));
-
-        assert_eq!((0, 0), calc_array_bounds(10, -60, 20));
-        assert_eq!((7, 3), calc_array_bounds(10, -6, 20));
-        assert_eq!((0, 10), calc_array_bounds(10, 1, 20));
-        assert_eq!((0, 10), calc_array_bounds(10, 8, 20));
-        assert_eq!((0, 10), calc_array_bounds(10, 11, 20));
-        assert_eq!((0, 9), calc_array_bounds(10, 12, 20));
-        assert_eq!((0, 6), calc_array_bounds(10, 15, 20));
-        assert_eq!((0, 1), calc_array_bounds(10, 20, 20));
-        assert_eq!((0, 0), calc_array_bounds(10, 21, 20));
-    }
-
-    #[test]
-    fn test_frame_string() {
-        let x = "1234567890";
-
-        assert_eq!("".to_string(), frame_string(x, 7, 5));
-        assert_eq!("1234".to_string(), frame_string(x, 2, 5));
-        assert_eq!("12345".to_string(), frame_string(x, 1, 5));
-
-        assert_eq!("23456".to_string(), frame_string(x, 0, 5));
-        assert_eq!("34567".to_string(), frame_string(x, -1, 5));
-
-        assert_eq!("890".to_string(), frame_string(x, -6, 5));
-        assert_eq!("".to_string(), frame_string(x, -60, 5));
-
-        assert_eq!("".to_string(), frame_string(x, -60, 20));
-        assert_eq!("890".to_string(), frame_string(x, -6, 20));
-        assert_eq!("1234567890".to_string(), frame_string(x, 1, 20));
-        assert_eq!("1234567890".to_string(), frame_string(x, 8, 20));
-        assert_eq!("1234567890".to_string(), frame_string(x, 11, 20));
-        assert_eq!("123456789".to_string(), frame_string(x, 12, 20));
-        assert_eq!("123456".to_string(), frame_string(x, 15, 20));
-        assert_eq!("1".to_string(), frame_string(x, 20, 20));
-        assert_eq!("".to_string(), frame_string(x, 21, 20));
-    }
+    fn test_calc_array_bounds() {}
 }
