@@ -43,10 +43,8 @@ impl Controller {
 
     pub fn run(&mut self) {
         self.resize();
-        self.state.cursor_pos = Point::new(
-            self.state.screen_width / 2,
-            self.state.screen_height / 2,
-        );
+        self.state.cursor_pos =
+            Point::new(self.state.screen_width / 2, self.state.screen_height / 2);
 
         let elapse_sender = self.sender.clone();
         let key_sender = self.sender.clone();
@@ -112,7 +110,7 @@ impl Controller {
     }
 
     fn resize(&mut self) {
-        let (screen_width, screen_height) = self.renderer.screen.resize();
+        let (screen_width, screen_height) = self.renderer.resize();
         self.state
             .resize(screen_width, screen_height);
     }

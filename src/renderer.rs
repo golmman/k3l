@@ -6,27 +6,26 @@ use termion::color::Bg;
 use termion::color::Green;
 use termion::color::Reset;
 
-use crate::common::TILE_W;
 use crate::common::frame_string;
+use crate::common::TILE_W;
 use crate::screen::DefaultScreen;
 use crate::screen::Pixel;
 use crate::screen::Sprite;
 use crate::state::State;
 
 pub struct Renderer {
-    pub screen: DefaultScreen,
-    screen_buffer: Vec<u8>,
+    screen: DefaultScreen,
 }
 
 impl Renderer {
     pub fn new() -> Self {
         let screen = DefaultScreen::new();
-        let screen_buffer = Vec::<u8>::new();
 
-        Self {
-            screen,
-            screen_buffer,
-        }
+        Self { screen }
+    }
+
+    pub fn resize(&mut self) -> (u16, u16) {
+        self.screen.resize()
     }
 
     pub fn display(&mut self, state: &State) {
@@ -99,35 +98,5 @@ impl Renderer {
 
         self.screen
             .draw(&sprite, state.map_pos.x, state.map_pos.y);
-
-        //let map_x = state.map_pos.x;
-        //let map_y = state.map_pos.y;
-        //let screen_cols = self.screen.cols;
-        //let screen_rows = self.screen.rows;
-
-        //for row in 0..state.map.height {
-        //    let row = row as u16;
-
-        //    let displayed_row = String:: new(); //state.get_map_row(row);
-
-        //    if displayed_row.is_empty() {
-        //        continue;
-        //    }
-
-        //    if map_y + (row as i16) < 1 || map_y + (row as i16) > screen_rows as i16 {
-        //        continue;
-        //    }
-
-        //    let goto_x = min(screen_cols, max(1, map_x) as u16) as u16;
-        //    let goto_y = min(screen_rows, max(1, map_y + row as i16) as u16) as u16;
-
-        //    write!(
-        //        self.screen_buffer,
-        //        "{}{}",
-        //        termion::cursor::Goto(goto_x, goto_y),
-        //        displayed_row,
-        //    )
-        //    .unwrap();
-        //}
     }
 }
