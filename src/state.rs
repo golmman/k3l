@@ -7,12 +7,12 @@ use crate::color::reset;
 use crate::common::calc_array_bounds;
 use crate::common::Point;
 use crate::common::FRAMES_PER_SECOND;
-use crate::common::PIXEL_H;
-use crate::common::PIXEL_W;
+use crate::common::TILE_H;
+use crate::common::TILE_W;
 use crate::common::TEST_MAP_HEIGHT;
 use crate::common::TEST_MAP_TILES;
 use crate::common::TEST_MAP_WIDTH;
-use crate::screen::ScreenChar;
+use crate::screen::Pixel;
 use crate::screen::Sprite;
 use crate::tile_config::BaseTile;
 use crate::tile_config::TileConfig;
@@ -25,9 +25,8 @@ pub struct State {
     pub map_pos: Point<i16>,
     pub tile_config: TileConfig,
 
-    // TODO: rename screen_width?
-    screen_cols: u16,
-    screen_rows: u16,
+    screen_width: u16,
+    screen_height: u16,
 }
 
 pub struct Map {
@@ -80,14 +79,14 @@ impl State {
             map_pos,
             tile_config,
 
-            screen_cols,
-            screen_rows,
+            screen_width: screen_cols,
+            screen_height: screen_rows,
         }
     }
 
     pub fn get_map_sprite(&self) -> Sprite {
         let mut pixels = Vec::new();
-        let width = PIXEL_W * self.map.width;
+        let width = TILE_W * self.map.width;
         let height = self.map.height;
 
         let frame = (self.elapsed_time % FRAMES_PER_SECOND as u64) as usize;
@@ -106,7 +105,7 @@ impl State {
             let fg_color = self.tile_config.get(tile_kind).fg_color;
 
             for ch in tile_str.chars() {
-                pixels.push(ScreenChar::new(ch, bg_color, fg_color));
+                pixels.push(Pixel::new(ch, bg_color, fg_color));
             }
         }
 
@@ -118,8 +117,8 @@ impl State {
     }
 
     pub fn resize(&mut self, screen_cols: u16, screen_rows: u16) {
-        self.screen_cols = screen_cols;
-        self.screen_rows = screen_rows;
+        self.screen_width = screen_cols;
+        self.screen_height = screen_rows;
     }
 
     pub fn elapse_time(&mut self) {
@@ -127,58 +126,58 @@ impl State {
     }
 
     pub fn move_map_left(&mut self) {
-        self.map_pos.x -= PIXEL_W as i16;
+        self.map_pos.x -= TILE_W as i16;
     }
 
     pub fn move_map_right(&mut self) {
-        self.map_pos.x += PIXEL_W as i16;
+        self.map_pos.x += TILE_W as i16;
     }
 
     pub fn move_map_up(&mut self) {
-        self.map_pos.y -= PIXEL_H as i16;
+        self.map_pos.y -= TILE_H as i16;
     }
 
     pub fn move_map_down(&mut self) {
-        self.map_pos.y += PIXEL_H as i16;
+        self.map_pos.y += TILE_H as i16;
     }
 
     pub fn move_cursor_left(&mut self) {
-        if self.cursor_pos.x < PIXEL_W {
+        if self.cursor_pos.x < TILE_W {
             self.move_map_right();
             return;
         }
-        self.cursor_pos.x -= PIXEL_W;
+        self.cursor_pos.x -= TILE_W;
 
         // align cursor to pixels
-        self.cursor_pos.x = ((self.cursor_pos.x - 1) / PIXEL_W) * PIXEL_W + PIXEL_W / 2;
+        self.cursor_pos.x = ((self.cursor_pos.x - 1) / TILE_W) * TILE_W + TILE_W / 2;
     }
 
     pub fn move_cursor_right(&mut self) {
-        if self.cursor_pos.x + PIXEL_W > (self.screen_cols / PIXEL_W) * PIXEL_W - 1 {
+        if self.cursor_pos.x + TILE_W > (self.screen_width / TILE_W) * TILE_W - 1 {
             self.move_map_left();
             return;
         }
-        self.cursor_pos.x += PIXEL_W;
+        self.cursor_pos.x += TILE_W;
 
         // align cursor to pixels
-        self.cursor_pos.x = ((self.cursor_pos.x - 1) / PIXEL_W) * PIXEL_W + PIXEL_W / 2;
+        self.cursor_pos.x = ((self.cursor_pos.x - 1) / TILE_W) * TILE_W + TILE_W / 2;
     }
 
     pub fn move_cursor_up(&mut self) {
         // TODO: align to pixel
-        if self.cursor_pos.y < PIXEL_H {
+        if self.cursor_pos.y < TILE_H {
             self.move_map_down();
             return;
         }
-        self.cursor_pos.y -= PIXEL_H;
+        self.cursor_pos.y -= TILE_H;
     }
 
     pub fn move_cursor_down(&mut self) {
         // TODO: align to pixel
-        if self.cursor_pos.y + PIXEL_H > self.screen_rows - 1 {
+        if self.cursor_pos.y + TILE_H > self.screen_height - 1 {
             self.move_map_up();
             return;
         }
-        self.cursor_pos.y += PIXEL_H;
+        self.cursor_pos.y += TILE_H;
     }
 }

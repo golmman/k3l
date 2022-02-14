@@ -1,9 +1,8 @@
 use std::cmp::max;
 use std::cmp::min;
 
-// TODO: Rename TILE_W
-pub const PIXEL_W: u16 = 3;
-pub const PIXEL_H: u16 = 1;
+pub const TILE_W: u16 = 3;
+pub const TILE_H: u16 = 1;
 pub const FRAMES_PER_SECOND: u16 = 8;
 
 #[rustfmt::skip]
@@ -31,17 +30,11 @@ impl<W> Point<W> {
 }
 
 #[derive(Debug)]
-pub struct Rect<W> {
-    pub x: W,
-    pub y: W,
-    pub w: W,
-    pub h: W,
-}
-
-impl<W> Rect<W> {
-    pub fn new(x: W, y: W, w: W, h: W) -> Self {
-        Self { x, y, w, h }
-    }
+pub struct RectAbsolute<W> {
+    pub x1: W,
+    pub y1: W,
+    pub x2: W,
+    pub y2: W,
 }
 
 pub fn frame_string(s: &str, position: i16, width: u16) -> String {
@@ -90,18 +83,13 @@ pub fn calc_array_bounds(len: u16, position: i16, width: u16) -> (u16, u16) {
     (skip as u16, take as u16)
 }
 
-pub fn intersect(r1: &Rect<i16>, r2: &Rect<i16>) -> Rect<i16> {
-    let x1 = max(r1.x, r2.x);
-    let y1 = max(r1.y, r2.y);
-    let x2 = min(r1.x + r1.w, r2.x + r2.w);
-    let y2 = min(r1.y + r1.h, r2.y + r2.h);
+pub fn intersect(r1: &RectAbsolute<i16>, r2: &RectAbsolute<i16>) -> RectAbsolute<i16> {
+    let x1 = max(r1.x1, r2.x1);
+    let y1 = max(r1.y1, r2.y1);
+    let x2 = min(r1.x2, r2.x2);
+    let y2 = min(r1.y2, r2.y2);
 
-    Rect {
-        x: x1,
-        y: y1,
-        w: x2 - x1,
-        h: y2 - y1,
-    }
+    RectAbsolute { x1, y1, x2, y2 }
 }
 
 #[cfg(test)]

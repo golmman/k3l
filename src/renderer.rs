@@ -6,10 +6,10 @@ use termion::color::Bg;
 use termion::color::Green;
 use termion::color::Reset;
 
-use crate::common::PIXEL_W;
+use crate::common::TILE_W;
 use crate::common::frame_string;
 use crate::screen::DefaultScreen;
-use crate::screen::ScreenChar;
+use crate::screen::Pixel;
 use crate::screen::Sprite;
 use crate::state::State;
 
@@ -41,7 +41,7 @@ impl Renderer {
     }
 
     fn draw_cursor(&mut self, state: &State) {
-        let pixels = vec![ScreenChar::new('X', 2, 0)];
+        let pixels = vec![Pixel::new('X', 2, 0)];
         let width = 1;
         let height = 1;
 
@@ -61,7 +61,7 @@ impl Renderer {
     fn draw_debug_info(&mut self, state: &State) {
         let state_info_str = format!(
             "cols: {}, rows: {}, time: {}",
-            self.screen.cols, self.screen.rows, state.elapsed_time,
+            self.screen.width, self.screen.height, state.elapsed_time,
         );
         let state_info = Sprite::from(state_info_str);
         self.screen.draw(&state_info, 10, 3);
@@ -76,13 +76,13 @@ impl Renderer {
 
     fn draw_floor(&mut self) {
         let mut pixels = Vec::new();
-        let width = (self.screen.cols / PIXEL_W) * PIXEL_W;
-        let height = self.screen.rows;
+        let width = (self.screen.width / TILE_W) * TILE_W;
+        let height = self.screen.height;
 
-        for i in 0..((width / PIXEL_W) * height) {
-            pixels.push(ScreenChar::new('[', 0, 7));
-            pixels.push(ScreenChar::new('-', 0, 7));
-            pixels.push(ScreenChar::new(']', 0, 7));
+        for i in 0..((width / TILE_W) * height) {
+            pixels.push(Pixel::new('[', 0, 7));
+            pixels.push(Pixel::new('-', 0, 7));
+            pixels.push(Pixel::new(']', 0, 7));
         }
 
         let sprite = Sprite {

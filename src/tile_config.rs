@@ -4,7 +4,7 @@ use std::path::Path;
 use termion::color::{Color, Fg, Bg, Black};
 
 use crate::color::color;
-use crate::common::{FRAMES_PER_SECOND, PIXEL_W};
+use crate::common::{FRAMES_PER_SECOND, TILE_W};
 
 const TILE_KIND_KEYS: [&str; 3] = ["dirt_floor", "dirt_wall", "lava_floor"];
 

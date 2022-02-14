@@ -31,7 +31,7 @@ impl Controller {
     pub fn new() -> Self {
         let (sender, receiver) = sync_channel::<TerminalEvent>(1024);
         let renderer = Renderer::new();
-        let state = State::new(renderer.screen.cols, renderer.screen.rows);
+        let state = State::new(renderer.screen.width, renderer.screen.height);
 
         Self {
             receiver,
@@ -43,7 +43,7 @@ impl Controller {
 
     pub fn run(&mut self) {
         self.state.cursor_pos =
-            Point::new(self.renderer.screen.cols / 2, self.renderer.screen.rows / 2);
+            Point::new(self.renderer.screen.width / 2, self.renderer.screen.height / 2);
 
         let elapse_sender = self.sender.clone();
         let key_sender = self.sender.clone();
@@ -111,6 +111,6 @@ impl Controller {
     fn resize(&mut self) {
         self.renderer.screen.resize();
         self.state
-            .resize(self.renderer.screen.cols, self.renderer.screen.rows);
+            .resize(self.renderer.screen.width, self.renderer.screen.height);
     }
 }
