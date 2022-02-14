@@ -6,9 +6,11 @@ use termion::color::Bg;
 use termion::color::Green;
 use termion::color::Reset;
 
+use crate::common::PIXEL_W;
 use crate::common::frame_string;
 use crate::screen::DefaultScreen;
 use crate::screen::ScreenChar;
+use crate::screen::Sprite;
 use crate::state::State;
 
 pub struct Renderer {
@@ -39,7 +41,15 @@ impl Renderer {
     }
 
     fn draw_cursor(&mut self, state: &State) {
-        let cursor = vec![vec![ScreenChar::new('X', 2, 0)]];
+        let pixels = vec![ScreenChar::new('X', 2, 0)];
+        let width = 1;
+        let height = 1;
+
+        let cursor = Sprite {
+            screen_chars: pixels,
+            width,
+            height,
+        };
 
         self.screen.draw(
             &cursor,
@@ -53,37 +63,42 @@ impl Renderer {
             "cols: {}, rows: {}, time: {}",
             self.screen.cols, self.screen.rows, state.elapsed_time,
         );
-        let state_info = ScreenChar::from_str(&state_info_str);
+        let state_info = Sprite::from(state_info_str);
         self.screen.draw(&state_info, 10, 3);
 
         let pos_info_str = format!(
             "map_x: {}, map_y: {}, cursor_x: {}, cursor_y: {}",
             state.map_pos.x, state.map_pos.y, state.cursor_pos.x, state.cursor_pos.y
         );
-        let pos_info = ScreenChar::from_str(&pos_info_str);
+        let pos_info = Sprite::from(pos_info_str);
         self.screen.draw(&pos_info, 10, 4);
     }
 
     fn draw_floor(&mut self) {
         let mut pixels = Vec::new();
+        let width = (self.screen.cols / PIXEL_W) * PIXEL_W;
+        let height = self.screen.rows;
 
-        for y in 0..self.screen.rows {
-            let mut row = Vec::new();
-            for x in 0..self.screen.cols / 3 {
-                row.push(ScreenChar::new('[', 0, 7));
-                row.push(ScreenChar::new('-', 0, 7));
-                row.push(ScreenChar::new(']', 0, 7));
-            }
-            pixels.push(row);
+        for i in 0..((width / PIXEL_W) * height) {
+            pixels.push(ScreenChar::new('[', 0, 7));
+            pixels.push(ScreenChar::new('-', 0, 7));
+            pixels.push(ScreenChar::new(']', 0, 7));
         }
 
-        self.screen.draw(&pixels, 0, 0);
+        let sprite = Sprite {
+            screen_chars: pixels,
+            width,
+            height,
+        };
+
+        self.screen.draw(&sprite, 0, 0);
     }
 
     fn draw_map(&mut self, state: &State) {
         let sprite = state.get_map_sprite();
 
-        self.screen.draw(&sprite, state.map_pos.x, state.map_pos.y);
+        self.screen
+            .draw(&sprite, state.map_pos.x, state.map_pos.y);
 
         //let map_x = state.map_pos.x;
         //let map_y = state.map_pos.y;

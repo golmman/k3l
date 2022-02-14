@@ -25,6 +25,7 @@ pub struct State {
     pub map_pos: Point<i16>,
     pub tile_config: TileConfig,
 
+    // TODO: rename screen_width?
     screen_cols: u16,
     screen_rows: u16,
 }
@@ -85,35 +86,35 @@ impl State {
     }
 
     pub fn get_map_sprite(&self) -> Sprite {
-        let mut sprite = Sprite::new();
+        let mut pixels = Vec::new();
+        let width = PIXEL_W * self.map.width;
+        let height = self.map.height;
 
-        for y in 0..self.map.height {
+        let frame = (self.elapsed_time % FRAMES_PER_SECOND as u64) as usize;
 
-            let mut sprite_row = Vec::new();
-            for x in 0..self.map.width {
-                let i = (self.map.width * y + x) as usize;
-                let frame = (self.elapsed_time % FRAMES_PER_SECOND as u64) as usize;
+        for tile in &self.map.tiles {
+            let tile_kind = tile.tile_kind;
+            // TOOD: rename tile_string_alternative(_id ?) ...
+            let tile_string_alternative = tile.tile_string_alternative;
 
-                let tile_kind = self.map.tiles[i].tile_kind;
-                let tile_string_alternative = self.map.tiles[i].tile_string_alternative;
+            let tile_str = &self
+                .tile_config
+                .get(tile_kind)
+                .tile_strings[tile_string_alternative]
+                .frames[frame];
+            let bg_color = self.tile_config.get(tile_kind).bg_color;
+            let fg_color = self.tile_config.get(tile_kind).fg_color;
 
-                let tile_str = &self
-                    .tile_config
-                    .get(tile_kind)
-                    .tile_strings[tile_string_alternative]
-                    .frames[frame];
-                let bg_color = self.tile_config.get(tile_kind).bg_color;
-                let fg_color = self.tile_config.get(tile_kind).fg_color;
-
-                for ch in tile_str.chars() {
-                    sprite_row.push(ScreenChar::new(ch, bg_color, fg_color));
-                }
+            for ch in tile_str.chars() {
+                pixels.push(ScreenChar::new(ch, bg_color, fg_color));
             }
-
-            sprite.push(sprite_row);
         }
 
-        sprite
+        Sprite {
+            screen_chars: pixels,
+            width,
+            height,
+        }
     }
 
     pub fn resize(&mut self, screen_cols: u16, screen_rows: u16) {

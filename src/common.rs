@@ -1,6 +1,7 @@
 use std::cmp::max;
 use std::cmp::min;
 
+// TODO: Rename TILE_W
 pub const PIXEL_W: u16 = 3;
 pub const PIXEL_H: u16 = 1;
 pub const FRAMES_PER_SECOND: u16 = 8;
@@ -29,6 +30,7 @@ impl<W> Point<W> {
     }
 }
 
+#[derive(Debug)]
 pub struct Rect<W> {
     pub x: W,
     pub y: W,
@@ -88,7 +90,7 @@ pub fn calc_array_bounds(len: u16, position: i16, width: u16) -> (u16, u16) {
     (skip as u16, take as u16)
 }
 
-pub fn intersect(r1: Rect<i16>, r2: Rect<i16>) -> Rect<i16> {
+pub fn intersect(r1: &Rect<i16>, r2: &Rect<i16>) -> Rect<i16> {
     let x1 = max(r1.x, r2.x);
     let y1 = max(r1.y, r2.y);
     let x2 = min(r1.x + r1.w, r2.x + r2.w);

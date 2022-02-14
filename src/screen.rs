@@ -8,9 +8,9 @@ use termion::raw::RawTerminal;
 
 use crate::color::color;
 use crate::color::reset;
+use crate::common::intersect;
 use crate::common::Rect;
 
-pub type Sprite = Vec<Vec<ScreenChar>>;
 pub type DefaultScreen = Screen<RawTerminal<Stdout>>;
 
 #[derive(Clone)]
@@ -40,22 +40,6 @@ impl ScreenChar {
             fg_color,
         }
     }
-
-    pub fn from_str(s: &str) -> Vec<Vec<ScreenChar>> {
-        let mut rows = Vec::new();
-        let mut row = Vec::new();
-
-        for ch in s.chars() {
-            row.push(Self {
-                bg_color: 0,
-                fg_color: 7,
-                ch,
-            });
-        }
-
-        rows.push(row);
-        rows
-    }
 }
 
 impl From<char> for ScreenChar {
@@ -68,9 +52,46 @@ impl From<char> for ScreenChar {
     }
 }
 
+pub struct Sprite {
+    // TODO: Rename "Pixel"?
+    pub screen_chars: Vec<ScreenChar>,
+    pub width: u16,
+    pub height: u16,
+}
+
+impl From<&str> for Sprite {
+    fn from(s: &str) -> Self {
+        let width = s.chars().count() as u16;
+        let height = 1;
+        let mut screen_chars = Vec::new();
+
+        for ch in s.chars() {
+            screen_chars.push(ScreenChar {
+                bg_color: 0,
+                fg_color: 7,
+                ch,
+            });
+        }
+
+        Self {
+            screen_chars,
+            width,
+            height,
+        }
+    }
+}
+
+impl From<String> for Sprite {
+    fn from(s: String) -> Self {
+        Self::from(s.as_str())
+    }
+}
+
 pub struct Screen<W: Write> {
     pub main_display: W,
     prelude_buffer: String,
+
+    // TODO: make sprite?
     pixel_buffer: Vec<ScreenChar>,
 
     pub cols: u16,
@@ -98,10 +119,29 @@ impl DefaultScreen {
     }
 
     pub fn draw(&mut self, sprite: &Sprite, x: i16, y: i16) {
-        for (y0, sprite_row) in sprite.iter().enumerate() {
-            for (x0, pixel) in sprite_row.iter().enumerate() {
-                let i = (self.cols as i16 * (y + y0 as i16) + x + x0 as i16) as usize;
-                self.pixel_buffer[i] = *pixel;
+        let screen_rect = Rect {
+            x: 0,
+            y: 0,
+            w: self.cols as i16,
+            h: self.rows as i16,
+        };
+
+        let sprite_rect = Rect {
+            x,
+            y,
+            w: sprite.width as i16,
+            h: sprite.height as i16,
+        };
+
+        let intersection_sprite = intersect(&screen_rect, &sprite_rect);
+
+        for sprite_y in intersection_sprite.y..(intersection_sprite.y + intersection_sprite.h) {
+            for sprite_x in intersection_sprite.x..(intersection_sprite.x + intersection_sprite.w) {
+                let screen_i = (self.cols as i16 * (sprite_y as i16) + sprite_x as i16) as usize;
+                let sprite_i =
+                    (sprite.width as i16 * (sprite_y as i16 - y) + sprite_x as i16 - x) as usize;
+
+                self.pixel_buffer[screen_i] = sprite.screen_chars[sprite_i];
             }
         }
     }
@@ -140,10 +180,6 @@ impl DefaultScreen {
             .write_all(s.as_bytes())
             .unwrap();
         self.main_display.flush().unwrap();
-    }
-
-    fn clip_sprite(&mut self, sprite: &Sprite, x: i16, y: i16) -> Rect<i16> {
-        Rect::new(0, 0, 0, 0)
     }
 }
 
