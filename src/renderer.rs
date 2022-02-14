@@ -32,7 +32,7 @@ impl Renderer {
     pub fn display(&mut self, state: &State) {
         self.screen.clear();
 
-        self.draw_floor();
+        self.draw_floor(state);
         self.draw_map(state);
         self.draw_debug_info(state);
         self.draw_cursor(state);
@@ -61,7 +61,7 @@ impl Renderer {
     fn draw_debug_info(&mut self, state: &State) {
         let state_info_str = format!(
             "cols: {}, rows: {}, time: {}",
-            self.screen.width, self.screen.height, state.elapsed_time,
+            state.screen_width, state.screen_height, state.elapsed_time,
         );
         let state_info = Sprite::from(state_info_str);
         self.screen.draw(&state_info, 10, 3);
@@ -74,10 +74,10 @@ impl Renderer {
         self.screen.draw(&pos_info, 10, 4);
     }
 
-    fn draw_floor(&mut self) {
+    fn draw_floor(&mut self, state: &State) {
         let mut pixels = Vec::new();
-        let width = (self.screen.width / TILE_W) * TILE_W;
-        let height = self.screen.height;
+        let width = (state.screen_width / TILE_W) * TILE_W;
+        let height = state.screen_height;
 
         for i in 0..((width / TILE_W) * height) {
             pixels.push(Pixel::new('[', 0, 7));

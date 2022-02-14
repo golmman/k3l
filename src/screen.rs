@@ -13,18 +13,6 @@ use crate::common::RectAbsolute;
 
 pub type DefaultScreen = Screen<RawTerminal<Stdout>>;
 
-#[derive(Clone)]
-struct Color {
-    fg: u8,
-    bg: u8,
-}
-
-impl Color {
-    fn new() -> Self {
-        Self { fg: 0, bg: 0 }
-    }
-}
-
 #[derive(Clone, Copy)]
 pub struct Pixel {
     ch: char,
@@ -87,14 +75,14 @@ impl From<String> for Sprite {
 }
 
 pub struct Screen<W: Write> {
-    pub main_display: W,
+    main_display: W,
     prelude_buffer: String,
 
     // TODO: make sprite?
     pixel_buffer: Vec<Pixel>,
 
-    pub width: u16,
-    pub height: u16,
+    width: u16,
+    height: u16,
 }
 
 impl DefaultScreen {
@@ -102,10 +90,12 @@ impl DefaultScreen {
         Screen::from(stdout().into_raw_mode().unwrap())
     }
 
-    pub fn resize(&mut self) {
+    pub fn resize(&mut self) -> (u16, u16) {
         let (cols, rows) = termion::terminal_size().unwrap();
         self.width = cols;
         self.height = rows;
+
+        (self.width, self.height)
     }
 
     pub fn clear(&mut self) {
@@ -214,7 +204,7 @@ impl<W: Write> From<W> for Screen<W> {
 impl<W: Write> Drop for Screen<W> {
     fn drop(&mut self) {
         write!(
-            self,
+            self.main_display,
             "{}{}{}",
             termion::clear::All,
             termion::cursor::Goto(1, 1),
@@ -222,16 +212,6 @@ impl<W: Write> Drop for Screen<W> {
         )
         .unwrap();
 
-        self.flush().unwrap();
-    }
-}
-
-impl<W: Write> Write for Screen<W> {
-    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
-        self.main_display.write(buf)
-    }
-
-    fn flush(&mut self) -> std::io::Result<()> {
-        self.main_display.flush()
+        self.main_display.flush().unwrap();
     }
 }

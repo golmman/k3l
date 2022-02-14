@@ -25,8 +25,8 @@ pub struct State {
     pub map_pos: Point<i16>,
     pub tile_config: TileConfig,
 
-    screen_width: u16,
-    screen_height: u16,
+    pub screen_width: u16,
+    pub screen_height: u16,
 }
 
 pub struct Map {
@@ -65,7 +65,7 @@ impl From<u8> for Tile {
 }
 
 impl State {
-    pub fn new(screen_cols: u16, screen_rows: u16) -> Self {
+    pub fn new() -> Self {
         let cursor_pos = Point::new(1, 1);
         let elapsed_time = 0;
         let tile_config = TileConfig::from("tile_config.toml");
@@ -79,8 +79,8 @@ impl State {
             map_pos,
             tile_config,
 
-            screen_width: screen_cols,
-            screen_height: screen_rows,
+            screen_width: 0,
+            screen_height: 0,
         }
     }
 
