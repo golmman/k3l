@@ -1,9 +1,9 @@
+use std::fs::read_to_string;
+use std::path::Path;
+
 use rand::random;
 
 use crate::common::Point;
-use crate::common::TEST_MAP_HEIGHT;
-use crate::common::TEST_MAP_TILES;
-use crate::common::TEST_MAP_WIDTH;
 use crate::common::TILE_H;
 use crate::common::TILE_W;
 use crate::screen::Pixel;
@@ -29,26 +29,51 @@ pub struct Map {
 }
 
 impl Map {
-    pub fn new(tile_config: &TileConfig, tile_ids: Vec<&str>, width: u16, height: u16) -> Self {
+    pub fn from_file<P: AsRef<Path>>(path: P, tile_config: &TileConfig) -> Self {
+        let map_toml_string = read_to_string(path).unwrap();
+        let map_toml_value: toml::value::Value = toml::from_str(&map_toml_string).unwrap();
+        let map_data = &map_toml_value["data"];
+        let map_data_tile_ids = &map_data["tile_ids"].as_str().unwrap();
+
+        let lines = map_data_tile_ids.split_ascii_whitespace();
+
         let mut tiles = Vec::new();
-        for tile_id in tile_ids {
-            let mut id_chars = tile_id.chars();
-            let tile_id = [id_chars.next().unwrap(), id_chars.next().unwrap(), id_chars.next().unwrap()];
+        let mut width: u16 = 0;
+        let mut height: u16 = 0;
 
-            let max_id = tile_config
-                .get(tile_id)
-                .tile_strings
-                .len() as u8;
+        for line in lines {
+            if height == 0 {
+                width = line.len() as u16 / TILE_W;
+            }
+            height += 1;
 
-            let tile_string_alternative_id = (random::<u8>() % max_id) as usize;
+            let mut chars = line.chars();
+            loop {
+                let ch1 = chars.next();
+                let ch2 = chars.next();
+                let ch3 = chars.next();
 
-            tiles.push(Tile {
-                tile_id,
-                tile_string_alternative_id,
-            });
+                if ch1.is_none() || ch2.is_none() || ch3.is_none() {
+                    break;
+                }
+
+                let tile_id = [ch1.unwrap(), ch2.unwrap(), ch3.unwrap()];
+
+                let max_id = tile_config
+                    .get(tile_id)
+                    .tile_strings
+                    .len() as u8;
+
+                let tile_string_alternative_id = (random::<u8>() % max_id) as usize;
+
+                tiles.push(Tile {
+                    tile_id,
+                    tile_string_alternative_id,
+                });
+            }
         }
 
-        Self {
+        Map {
             tiles,
             width,
             height,
@@ -65,13 +90,8 @@ impl State {
     pub fn new() -> Self {
         let cursor_pos = Point::new(1, 1);
         let elapsed_time = 0;
-        let tile_config = TileConfig::from("tile_config.toml");
-        let map = Map::new(
-            &tile_config,
-            Vec::from(TEST_MAP_TILES),
-            TEST_MAP_WIDTH,
-            TEST_MAP_HEIGHT,
-        );
+        let tile_config = TileConfig::from_file("tile_config.toml");
+        let map = Map::from_file("example_map.toml", &tile_config);
         let map_pos = Point::new(72, 1);
 
         Self {

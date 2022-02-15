@@ -77,12 +77,10 @@ pub struct TileConfig {
 
 impl TileConfig {
     pub fn get(&self, tile_id: TileId) -> &BaseTile {
-        &self.tiles.get(&tile_id).unwrap()
+        self.tiles.get(&tile_id).unwrap()
     }
-}
 
-impl<P: AsRef<Path>> From<P> for TileConfig {
-    fn from(path: P) -> Self {
+    pub fn from_file<P: AsRef<Path>>(path: P) -> Self {
         let mut tiles = HashMap::new();
 
         let tile_config_string = read_to_string(path).unwrap();
@@ -99,7 +97,11 @@ impl<P: AsRef<Path>> From<P> for TileConfig {
             let floor_state = TileState::from(t["floor_state"].as_str().unwrap());
             let block_state = TileState::from(t["block_state"].as_str().unwrap());
             let mut id_chars = t["id"].as_str().unwrap().chars();
-            let id = [id_chars.next().unwrap(), id_chars.next().unwrap(), id_chars.next().unwrap()];
+            let id = [
+                id_chars.next().unwrap(),
+                id_chars.next().unwrap(),
+                id_chars.next().unwrap(),
+            ];
             let tile_strings = t["tile_strings"]
                 .as_array()
                 .unwrap()
@@ -107,15 +109,18 @@ impl<P: AsRef<Path>> From<P> for TileConfig {
                 .map(TileString::from)
                 .collect();
 
-            tiles.insert(id, BaseTile {
-                block_state,
-                color,
-                floor_state,
+            tiles.insert(
                 id,
-                key,
-                name,
-                tile_strings,
-            });
+                BaseTile {
+                    block_state,
+                    color,
+                    floor_state,
+                    id,
+                    key,
+                    name,
+                    tile_strings,
+                },
+            );
         }
 
         Self { tiles }
