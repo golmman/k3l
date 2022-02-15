@@ -1,34 +1,10 @@
+use std::collections::HashMap;
 use std::fs::read_to_string;
 use std::path::Path;
 
 use crate::color::Color;
 
-// TODO: make this unecessary
-const TILE_KIND_KEYS: [&str; 3] = ["dirt_floor", "dirt_wall", "lava_floor"];
-
-#[derive(Clone, Copy, Debug)]
-pub enum TileKind {
-    DirtFloor,
-    DirtWall,
-    LavaFloor,
-}
-
-impl From<&str> for TileKind {
-    fn from(key: &str) -> Self {
-        match key {
-            "dirt_floor" => TileKind::DirtFloor,
-            "dirt_wall" => TileKind::DirtWall,
-            "lava_floor" => TileKind::LavaFloor,
-            _ => panic!(),
-        }
-    }
-}
-
-impl From<String> for TileKind {
-    fn from(key: String) -> Self {
-        TileKind::from(key.as_str())
-    }
-}
+pub type TileId = [char; 3];
 
 #[derive(Clone, Debug)]
 pub enum TileState {
@@ -85,58 +61,45 @@ impl From<&toml::Value> for TileString {
 
 #[derive(Clone, Debug)]
 pub struct BaseTile {
+    pub block_state: TileState,
     pub color: Color,
+    pub floor_state: TileState,
+    pub id: TileId,
+    pub key: String,
     pub name: String,
     pub tile_strings: Vec<TileString>,
-    pub floor_state: TileState,
-    pub block_state: TileState,
-    pub kind: TileKind,
-}
-
-impl BaseTile {
-    pub fn new() -> Self {
-        Self {
-            color: Color {
-                bg_color: 0,
-                fg_color: 7,
-            },
-            name: String::from(""),
-            tile_strings: Vec::new(),
-            floor_state: TileState::Solid,
-            block_state: TileState::Solid,
-            kind: TileKind::DirtFloor,
-        }
-    }
 }
 
 #[derive(Clone, Debug)]
 pub struct TileConfig {
-    tiles: Vec<BaseTile>,
+    tiles: HashMap<TileId, BaseTile>,
 }
 
 impl TileConfig {
-    pub fn get(&self, tile_kind: TileKind) -> &BaseTile {
-        &self.tiles[tile_kind as usize]
+    pub fn get(&self, tile_id: TileId) -> &BaseTile {
+        &self.tiles.get(&tile_id).unwrap()
     }
 }
 
 impl<P: AsRef<Path>> From<P> for TileConfig {
     fn from(path: P) -> Self {
-        let mut tiles = vec![BaseTile::new(); TILE_KIND_KEYS.len()];
+        let mut tiles = HashMap::new();
 
         let tile_config_string = read_to_string(path).unwrap();
         let tile_config: toml::value::Value = toml::from_str(&tile_config_string).unwrap();
+        let tile_confg_table = tile_config.as_table().unwrap();
 
-        for key in TILE_KIND_KEYS {
-            let t = &tile_config[key];
+        for (key, t) in tile_confg_table {
             let bg_color = t["bg_color"].as_integer().unwrap() as u8;
             let fg_color = t["fg_color"].as_integer().unwrap() as u8;
 
+            let key = key.to_string();
             let color = Color { bg_color, fg_color };
             let name = t["name"].as_str().unwrap().to_string();
             let floor_state = TileState::from(t["floor_state"].as_str().unwrap());
             let block_state = TileState::from(t["block_state"].as_str().unwrap());
-            let kind = TileKind::from(key);
+            let mut id_chars = t["id"].as_str().unwrap().chars();
+            let id = [id_chars.next().unwrap(), id_chars.next().unwrap(), id_chars.next().unwrap()];
             let tile_strings = t["tile_strings"]
                 .as_array()
                 .unwrap()
@@ -144,14 +107,15 @@ impl<P: AsRef<Path>> From<P> for TileConfig {
                 .map(TileString::from)
                 .collect();
 
-            tiles[kind as usize] = BaseTile {
+            tiles.insert(id, BaseTile {
+                block_state,
                 color,
+                floor_state,
+                id,
+                key,
                 name,
                 tile_strings,
-                floor_state,
-                block_state,
-                kind,
-            }
+            });
         }
 
         Self { tiles }

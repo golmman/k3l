@@ -61,12 +61,12 @@ tile_strings = [
     ["AAA", "BBB", "CCC"],
 ]
 
-[multiline_test]
-name = """\
-    Hello \
-    World\
-"""
-pp = [
-    [1, 2, 3],
-    [4, 5, 6],
-]
+#[multiline_test]
+#name = """\
+#    Hello \
+#    World\
+#"""
+#pp = [
+#    [1, 2, 3],
+#    [4, 5, 6],
+#]

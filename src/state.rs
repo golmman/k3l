@@ -1,7 +1,6 @@
 use rand::random;
 
 use crate::common::Point;
-use crate::common::FRAMES_PER_SECOND;
 use crate::common::TEST_MAP_HEIGHT;
 use crate::common::TEST_MAP_TILES;
 use crate::common::TEST_MAP_WIDTH;
@@ -10,7 +9,7 @@ use crate::common::TILE_W;
 use crate::screen::Pixel;
 use crate::screen::Sprite;
 use crate::tile_config::TileConfig;
-use crate::tile_config::TileKind;
+use crate::tile_config::TileId;
 
 pub struct State {
     pub cursor_pos: Point<u16>,
@@ -30,20 +29,21 @@ pub struct Map {
 }
 
 impl Map {
-    pub fn new(tile_config: &TileConfig, tile_kinds: Vec<u8>, width: u16, height: u16) -> Self {
+    pub fn new(tile_config: &TileConfig, tile_ids: Vec<&str>, width: u16, height: u16) -> Self {
         let mut tiles = Vec::new();
-        for tile_kind in tile_kinds {
-            let tile_kind = unsafe { std::mem::transmute(tile_kind) };
+        for tile_id in tile_ids {
+            let mut id_chars = tile_id.chars();
+            let tile_id = [id_chars.next().unwrap(), id_chars.next().unwrap(), id_chars.next().unwrap()];
 
             let max_id = tile_config
-                .get(tile_kind)
+                .get(tile_id)
                 .tile_strings
                 .len() as u8;
 
             let tile_string_alternative_id = (random::<u8>() % max_id) as usize;
 
             tiles.push(Tile {
-                tile_kind,
+                tile_id,
                 tile_string_alternative_id,
             });
         }
@@ -57,17 +57,8 @@ impl Map {
 }
 
 pub struct Tile {
-    tile_kind: TileKind,
+    tile_id: TileId,
     tile_string_alternative_id: usize,
-}
-
-impl From<u8> for Tile {
-    fn from(s: u8) -> Self {
-        Self {
-            tile_kind: unsafe { std::mem::transmute(s) },
-            tile_string_alternative_id: 0,
-        }
-    }
 }
 
 impl State {
@@ -100,20 +91,19 @@ impl State {
         let width = TILE_W * self.map.width;
         let height = self.map.height;
 
-
         for tile in &self.map.tiles {
-            let tile_kind = tile.tile_kind;
+            let tile_id = tile.tile_id;
             let tile_string_alternative_id = tile.tile_string_alternative_id;
 
             let tile_frames = &self
                 .tile_config
-                .get(tile_kind)
+                .get(tile_id)
                 .tile_strings[tile_string_alternative_id]
                 .frames;
             let frame = (self.elapsed_time % tile_frames.len() as u64) as usize;
 
             let tile_str = &tile_frames[frame];
-            let color = self.tile_config.get(tile_kind).color;
+            let color = self.tile_config.get(tile_id).color;
 
             for ch in tile_str.chars() {
                 pixels.push(Pixel { ch, color });
