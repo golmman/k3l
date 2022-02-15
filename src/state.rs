@@ -1,3 +1,5 @@
+use rand::random;
+
 use crate::common::Point;
 use crate::common::FRAMES_PER_SECOND;
 use crate::common::TEST_MAP_HEIGHT;
@@ -28,11 +30,23 @@ pub struct Map {
 }
 
 impl Map {
-    pub fn new(tile_kinds: Vec<u8>, width: u16, height: u16) -> Self {
-        let tiles = tile_kinds
-            .into_iter()
-            .map(Tile::from)
-            .collect();
+    pub fn new(tile_config: &TileConfig, tile_kinds: Vec<u8>, width: u16, height: u16) -> Self {
+        let mut tiles = Vec::new();
+        for tile_kind in tile_kinds {
+            let tile_kind = unsafe { std::mem::transmute(tile_kind) };
+
+            let max_id = tile_config
+                .get(tile_kind)
+                .tile_strings
+                .len() as u8;
+
+            let tile_string_alternative_id = (random::<u8>() % max_id) as usize;
+
+            tiles.push(Tile {
+                tile_kind,
+                tile_string_alternative_id,
+            });
+        }
 
         Self {
             tiles,
@@ -44,14 +58,14 @@ impl Map {
 
 pub struct Tile {
     tile_kind: TileKind,
-    tile_string_alternative: usize,
+    tile_string_alternative_id: usize,
 }
 
 impl From<u8> for Tile {
     fn from(s: u8) -> Self {
         Self {
             tile_kind: unsafe { std::mem::transmute(s) },
-            tile_string_alternative: 0,
+            tile_string_alternative_id: 0,
         }
     }
 }
@@ -61,8 +75,13 @@ impl State {
         let cursor_pos = Point::new(1, 1);
         let elapsed_time = 0;
         let tile_config = TileConfig::from("tile_config.toml");
-        let map = Map::new(Vec::from(TEST_MAP_TILES), TEST_MAP_WIDTH, TEST_MAP_HEIGHT);
-        let map_pos = Point::new(1, 6);
+        let map = Map::new(
+            &tile_config,
+            Vec::from(TEST_MAP_TILES),
+            TEST_MAP_WIDTH,
+            TEST_MAP_HEIGHT,
+        );
+        let map_pos = Point::new(72, 1);
 
         Self {
             cursor_pos,
@@ -81,18 +100,19 @@ impl State {
         let width = TILE_W * self.map.width;
         let height = self.map.height;
 
-        let frame = (self.elapsed_time % FRAMES_PER_SECOND as u64) as usize;
 
         for tile in &self.map.tiles {
             let tile_kind = tile.tile_kind;
-            // TOOD: rename tile_string_alternative(_id ?) ...
-            let tile_string_alternative = tile.tile_string_alternative;
+            let tile_string_alternative_id = tile.tile_string_alternative_id;
 
-            let tile_str = &self
+            let tile_frames = &self
                 .tile_config
                 .get(tile_kind)
-                .tile_strings[tile_string_alternative]
-                .frames[frame];
+                .tile_strings[tile_string_alternative_id]
+                .frames;
+            let frame = (self.elapsed_time % tile_frames.len() as u64) as usize;
+
+            let tile_str = &tile_frames[frame];
             let color = self.tile_config.get(tile_kind).color;
 
             for ch in tile_str.chars() {

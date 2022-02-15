@@ -3,6 +3,7 @@ use std::path::Path;
 
 use crate::color::Color;
 
+// TODO: make this unecessary
 const TILE_KIND_KEYS: [&str; 3] = ["dirt_floor", "dirt_wall", "lava_floor"];
 
 #[derive(Clone, Copy, Debug)]
@@ -60,15 +61,7 @@ pub struct TileString {
 
 impl From<Vec<&str>> for TileString {
     fn from(f: Vec<&str>) -> Self {
-        let frames_str = match f.len() {
-            8 => f,
-            4 => vec![f[0], f[0], f[1], f[1], f[2], f[2], f[3], f[3]],
-            2 => vec![f[0], f[0], f[0], f[0], f[1], f[1], f[1], f[1]],
-            1 => vec![f[0], f[0], f[0], f[0], f[0], f[0], f[0], f[0]],
-            _ => panic!("A tile string must have 1, 2, 4 or 8 frames defined."),
-        };
-
-        let frames = frames_str
+        let frames = f
             .into_iter()
             .map(String::from)
             .collect();

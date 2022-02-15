@@ -127,6 +127,7 @@ impl DefaultScreen {
             let row = y + 1;
             s.push_str(&format!("\x1b[{row};1H")); // goto (row, 1)
 
+            // TODO: further optimization is possible, like recycling bg/fg color only
             let mut last_color = Color::null();
             for x in 0..self.width {
                 let i = (self.width * y + x) as usize;
