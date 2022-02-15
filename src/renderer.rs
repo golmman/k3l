@@ -25,10 +25,45 @@ impl Renderer {
 
         self.draw_floor(state);
         self.draw_map(state);
+        self.draw_astar(state);
         self.draw_debug_info(state);
         self.draw_cursor(state);
 
         self.screen.display();
+    }
+
+    fn draw_astar(&mut self, state: &State) {
+        {
+            let astar_start_sprite = Sprite::from_color_text(
+                " S ",
+                Color {
+                    bg_color: 34,
+                    fg_color: 0,
+                },
+            );
+
+            self.screen.draw(
+                &astar_start_sprite,
+                state.astar_start.x + state.map_pos.x,
+                state.astar_start.y + state.map_pos.y,
+            );
+        }
+
+        {
+            let astar_goal_sprite = Sprite::from_color_text(
+                " G ",
+                Color {
+                    bg_color: 34,
+                    fg_color: 0,
+                },
+            );
+
+            self.screen.draw(
+                &astar_goal_sprite,
+                state.astar_goal.x + state.map_pos.x,
+                state.astar_goal.y + state.map_pos.y,
+            );
+        }
     }
 
     fn draw_cursor(&mut self, state: &State) {

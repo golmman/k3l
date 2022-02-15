@@ -1,15 +1,23 @@
+[bedrock]
+id = "[#]"
+bg_color = 0
+fg_color = 8
+name = "bedrock"
+floor_state = "solid"
+block_state = "solid"
+tile_strings = [["###"]]
+
 [dirt_wall]
-id = "[D]"
+id = "[:]"
 bg_color = 0
 fg_color = 8
 name = "dirt wall"
 floor_state = "solid"
 block_state = "solid"
-#tile_strings = [["###"]]
 tile_strings = [[", '"]]
 
 [dirt_floor]
-id = "[d]"
+id = "[_]"
 bg_color = 8
 fg_color = 7
 name = "dirt floor"
@@ -36,7 +44,7 @@ tile_strings = [
 ]
 
 [lava_floor]
-id = "[l]"
+id = "[v]"
 bg_color = 1
 fg_color = 0
 name = "lava floor"
@@ -60,13 +68,3 @@ tile_strings = [
     ["000", "001", "002", "003", "004", "005", "006", "007", "008", "009", "010", "011", "012"],
     ["AAA", "BBB", "CCC"],
 ]
-
-#[multiline_test]
-#name = """\
-#    Hello \
-#    World\
-#"""
-#pp = [
-#    [1, 2, 3],
-#    [4, 5, 6],
-#]

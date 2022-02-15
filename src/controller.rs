@@ -98,6 +98,9 @@ impl Controller {
                 Key::Char('l') => self.state.move_map_left(),
                 Key::Char('k') => self.state.move_map_down(),
                 Key::Char('j') => self.state.move_map_up(),
+
+                Key::Char('s') => self.state.set_astar_start(),
+                Key::Char('g') => self.state.set_astar_goal(),
                 _ => {}
             },
             TerminalEvent::Resize => self.resize(),

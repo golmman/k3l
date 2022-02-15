@@ -12,6 +12,10 @@ use crate::tile_config::TileConfig;
 use crate::tile_config::TileId;
 
 pub struct State {
+    pub astar_start: Point<i16>,
+    pub astar_goal: Point<i16>,
+    pub astar_path: Vec<Point<i16>>,
+
     pub cursor_pos: Point<u16>,
     pub elapsed_time: u64,
     pub map: Map,
@@ -95,6 +99,10 @@ impl State {
         let map_pos = Point::new(72, 1);
 
         Self {
+            astar_start: Point::new(0, 0),
+            astar_goal: Point::new(0, 0),
+            astar_path: Vec::new(),
+
             cursor_pos,
             elapsed_time,
             map,
@@ -144,6 +152,16 @@ impl State {
 
     pub fn elapse_time(&mut self) {
         self.elapsed_time += 1;
+    }
+
+    pub fn set_astar_start(&mut self) {
+        self.astar_start.x = self.cursor_pos.x as i16 - self.map_pos.x - 1;
+        self.astar_start.y = self.cursor_pos.y as i16 - self.map_pos.y;
+    }
+
+    pub fn set_astar_goal(&mut self) {
+        self.astar_goal.x = self.cursor_pos.x as i16 - self.map_pos.x - 1;
+        self.astar_goal.y = self.cursor_pos.y as i16 - self.map_pos.y;
     }
 
     pub fn move_map_left(&mut self) {

@@ -32,18 +32,36 @@ pub struct Sprite {
     pub height: u16,
 }
 
+impl Sprite {
+    pub fn from_color_text(text: &str, color: Color) -> Self {
+        let width = text.chars().count() as u16;
+        let height = 1;
+        let mut pixels = Vec::new();
+
+        for ch in text.chars() {
+            pixels.push(Pixel { ch, color });
+        }
+
+        Self {
+            pixels,
+            width,
+            height,
+        }
+    }
+}
+
 impl From<&str> for Sprite {
     fn from(s: &str) -> Self {
         let width = s.chars().count() as u16;
         let height = 1;
-        let mut screen_chars = Vec::new();
+        let mut pixels = Vec::new();
 
         for ch in s.chars() {
-            screen_chars.push(Pixel::from(ch));
+            pixels.push(Pixel::from(ch));
         }
 
         Self {
-            pixels: screen_chars,
+            pixels,
             width,
             height,
         }
