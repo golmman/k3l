@@ -1,23 +1,28 @@
 use std::cmp::max;
 use std::cmp::min;
 
-pub const TILE_W: u16 = 3;
-pub const TILE_H: u16 = 1;
+pub const TILE_SIZE: Size2d = Size2d { width: 3, height: 1 };
 pub const FRAMES_PER_SECOND: u16 = 8;
 
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub struct Point<W> {
-    pub x: W,
-    pub y: W,
+pub struct Size2d {
+    pub width: i32,
+    pub height: i32,
 }
 
-impl<W> Point<W> {
-    pub fn new(x: W, y: W) -> Self {
-        Self { x, y }
-    }
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub struct PixelPoint {
+    pub x: i32,
+    pub y: i32,
 }
 
-impl Point<i16> {
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub struct TilePoint {
+    pub x: i32,
+    pub y: i32,
+}
+
+impl TilePoint {
     pub fn left(&self) -> Self {
         Self {
             x: self.x - 1,
@@ -54,7 +59,8 @@ pub struct RectAbsolute<W> {
     pub x2: W,
     pub y2: W,
 }
-pub fn intersect(r1: &RectAbsolute<i16>, r2: &RectAbsolute<i16>) -> RectAbsolute<i16> {
+
+pub fn intersect(r1: &RectAbsolute<i32>, r2: &RectAbsolute<i32>) -> RectAbsolute<i32> {
     let x1 = max(r1.x1, r2.x1);
     let y1 = max(r1.y1, r2.y1);
     let x2 = min(r1.x2, r2.x2);

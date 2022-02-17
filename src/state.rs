@@ -3,9 +3,9 @@ use std::path::Path;
 
 use rand::random;
 
-use crate::common::Point;
-use crate::common::TILE_H;
-use crate::common::TILE_W;
+use crate::common::Size2d;
+use crate::common::TilePoint;
+use crate::common::TILE_SIZE;
 use crate::screen::Pixel;
 use crate::screen::Sprite;
 use crate::tile_config::TileConfig;
@@ -13,7 +13,7 @@ use crate::tile_config::TileId;
 
 #[derive(Debug)]
 pub struct TilePos {
-    pos: Point<i16>,
+    pos: TilePoint,
     tile_id: TileId,
 }
 
@@ -59,28 +59,27 @@ impl From<Neighborhood4> for Vec<TilePos> {
 
 pub struct Map {
     pub tiles: Vec<Tile>,
-    pub width: u16,
-    pub height: u16,
+    pub size: Size2d,
 }
 
 impl Map {
-    pub fn get_tile_pos(&self, point: Point<i16>) -> Option<TilePos> {
-        if point.x < 0 || point.x >= self.width as i16 {
+    pub fn get_tile_pos(&self, point: TilePoint) -> Option<TilePos> {
+        if point.x < 0 || point.x >= self.size.width {
             return None;
         }
 
-        if point.y < 0 || point.y >= self.height as i16 {
+        if point.y < 0 || point.y >= self.size.height {
             return None;
         }
 
-        let tile = self.tiles[(self.width as i16 * point.y + point.x) as usize].clone();
+        let tile = self.tiles[(self.size.width * point.y + point.x) as usize].clone();
         Some(TilePos {
             tile_id: tile.tile_id,
             pos: point,
         })
     }
 
-    pub fn get_neighborhood4(&self, point: &Point<i16>) -> Neighborhood4 {
+    pub fn get_neighborhood4(&self, point: &TilePoint) -> Neighborhood4 {
         let left = self.get_tile_pos(point.left());
         let right = self.get_tile_pos(point.right());
         let up = self.get_tile_pos(point.up());
@@ -103,12 +102,12 @@ impl Map {
         let lines = map_data_tile_ids.split_ascii_whitespace();
 
         let mut tiles = Vec::new();
-        let mut width: u16 = 0;
-        let mut height: u16 = 0;
+        let mut width: i32 = 0;
+        let mut height: i32 = 0;
 
         for line in lines {
             if height == 0 {
-                width = line.len() as u16 / TILE_W;
+                width = line.len() as i32 / TILE_SIZE.width;
             }
             height += 1;
 
@@ -140,8 +139,7 @@ impl Map {
 
         Map {
             tiles,
-            width,
-            height,
+            size: Size2d { width, height },
         }
     }
 }
@@ -153,31 +151,30 @@ pub struct Tile {
 }
 
 pub struct State {
-    pub astar_start: Point<i16>,
-    pub astar_goal: Point<i16>,
-    pub astar_path: Option<Vec<Point<i16>>>,
+    pub astar_start: TilePoint,
+    pub astar_goal: TilePoint,
+    pub astar_path: Option<Vec<TilePoint>>,
 
-    pub cursor_pos: Point<u16>,
+    pub cursor_pos: TilePoint,
     pub elapsed_time: u64,
     pub map: Map,
-    pub map_pos: Point<i16>,
+    pub map_pos: TilePoint,
     pub tile_config: TileConfig,
 
-    pub screen_width: u16,
-    pub screen_height: u16,
+    pub screen_size: Size2d,
 }
 
 impl State {
     pub fn new() -> Self {
-        let cursor_pos = Point::new(1, 1);
+        let cursor_pos = TilePoint { x: 1, y: 1 };
         let elapsed_time = 0;
         let tile_config = TileConfig::from_file("tile_config.toml");
         let map = Map::from_file("example_map.toml", &tile_config);
-        let map_pos = Point::new(72, 1);
+        let map_pos = TilePoint { x: 72, y: 1 };
 
         Self {
-            astar_start: Point::new(0, 0),
-            astar_goal: Point::new(0, 0),
+            astar_start: TilePoint { x: 0, y: 0 },
+            astar_goal: TilePoint { x: 0, y: 0 },
             astar_path: None,
 
             cursor_pos,
@@ -186,15 +183,17 @@ impl State {
             map_pos,
             tile_config,
 
-            screen_width: 0,
-            screen_height: 0,
+            screen_size: Size2d {
+                width: 0,
+                height: 0,
+            },
         }
     }
 
     pub fn get_map_sprite(&self) -> Sprite {
         let mut pixels = Vec::new();
-        let width = TILE_W * self.map.width;
-        let height = self.map.height;
+        let width = TILE_SIZE.width * self.map.size.width;
+        let height = self.map.size.height;
 
         for tile in &self.map.tiles {
             let tile_id = tile.tile_id;
@@ -217,14 +216,12 @@ impl State {
 
         Sprite {
             pixels,
-            width,
-            height,
+            size: Size2d { width, height },
         }
     }
 
-    pub fn resize(&mut self, screen_cols: u16, screen_rows: u16) {
-        self.screen_width = screen_cols;
-        self.screen_height = screen_rows;
+    pub fn resize(&mut self, screen_size: &Size2d) {
+        self.screen_size = screen_size.clone();
     }
 
     pub fn elapse_time(&mut self) {
@@ -232,78 +229,82 @@ impl State {
     }
 
     pub fn set_astar_start(&mut self) {
-        self.astar_start.x = self.cursor_pos.x as i16 - self.map_pos.x - 1;
-        self.astar_start.y = self.cursor_pos.y as i16 - self.map_pos.y;
+        self.astar_start.x = self.cursor_pos.x - self.map_pos.x - 1;
+        self.astar_start.y = self.cursor_pos.y - self.map_pos.y;
     }
 
     pub fn set_astar_goal(&mut self) {
-        self.astar_goal.x = self.cursor_pos.x as i16 - self.map_pos.x - 1;
-        self.astar_goal.y = self.cursor_pos.y as i16 - self.map_pos.y;
+        self.astar_goal.x = self.cursor_pos.x - self.map_pos.x - 1;
+        self.astar_goal.y = self.cursor_pos.y - self.map_pos.y;
     }
 
     pub fn move_map_left(&mut self) {
-        self.map_pos.x -= TILE_W as i16;
+        self.map_pos.x -= TILE_SIZE.width;
     }
 
     pub fn move_map_right(&mut self) {
-        self.map_pos.x += TILE_W as i16;
+        self.map_pos.x += TILE_SIZE.width;
     }
 
     pub fn move_map_up(&mut self) {
-        self.map_pos.y -= TILE_H as i16;
+        self.map_pos.y -= TILE_SIZE.height;
     }
 
     pub fn move_map_down(&mut self) {
-        self.map_pos.y += TILE_H as i16;
+        self.map_pos.y += TILE_SIZE.height;
     }
 
     pub fn move_cursor_left(&mut self) {
-        if self.cursor_pos.x < TILE_W {
+        if self.cursor_pos.x < TILE_SIZE.width {
             self.move_map_right();
             return;
         }
-        self.cursor_pos.x -= TILE_W;
+        self.cursor_pos.x -= TILE_SIZE.width;
 
         // align cursor to pixels
-        self.cursor_pos.x = ((self.cursor_pos.x - 1) / TILE_W) * TILE_W + TILE_W / 2;
+        self.cursor_pos.x =
+            ((self.cursor_pos.x - 1) / TILE_SIZE.width) * TILE_SIZE.width + TILE_SIZE.width / 2;
     }
 
     pub fn move_cursor_right(&mut self) {
-        if self.cursor_pos.x + TILE_W > (self.screen_width / TILE_W) * TILE_W - 1 {
+        if self.cursor_pos.x + TILE_SIZE.width
+            > (self.screen_size.width / TILE_SIZE.width) * TILE_SIZE.width - 1
+        {
             self.move_map_left();
             return;
         }
-        self.cursor_pos.x += TILE_W;
+        self.cursor_pos.x += TILE_SIZE.width;
 
         // align cursor to pixels
-        self.cursor_pos.x = ((self.cursor_pos.x - 1) / TILE_W) * TILE_W + TILE_W / 2;
+        self.cursor_pos.x =
+            ((self.cursor_pos.x - 1) / TILE_SIZE.width) * TILE_SIZE.width + TILE_SIZE.width / 2;
     }
 
     pub fn move_cursor_up(&mut self) {
         // TODO: align to pixel
-        if self.cursor_pos.y < TILE_H {
+        if self.cursor_pos.y < TILE_SIZE.height {
             self.move_map_down();
             return;
         }
-        self.cursor_pos.y -= TILE_H;
+        self.cursor_pos.y -= TILE_SIZE.height;
     }
 
     pub fn move_cursor_down(&mut self) {
         // TODO: align to pixel
-        if self.cursor_pos.y + TILE_H > self.screen_height - 1 {
+        if self.cursor_pos.y + TILE_SIZE.height > self.screen_size.height - 1 {
             self.move_map_up();
             return;
         }
-        self.cursor_pos.y += TILE_H;
+        self.cursor_pos.y += TILE_SIZE.height;
     }
 }
 
 pub fn get_shortest_path(
-    start: &Point<i16>,
-    goal: &Point<i16>,
+    start: &TilePoint,
+    goal: &TilePoint,
     map: &Map,
     tile_config: &TileConfig,
-) -> Option<Vec<Point<i16>>> {
+) -> Option<Vec<TilePoint>> {
     let path = pathfinding::prelude::astar(
         start,
         |p| successors(p, map, tile_config),
@@ -314,7 +315,7 @@ pub fn get_shortest_path(
     path.map(|p| p.0)
 }
 
-fn successors(point: &Point<i16>, map: &Map, tile_config: &TileConfig) -> Vec<(Point<i16>, u32)> {
+fn successors(point: &TilePoint, map: &Map, tile_config: &TileConfig) -> Vec<(TilePoint, u32)> {
     let neigh_tiles: Vec<TilePos> = map
         .get_neighborhood4(point)
         .filter_traversable(tile_config)
@@ -326,7 +327,7 @@ fn successors(point: &Point<i16>, map: &Map, tile_config: &TileConfig) -> Vec<(P
         .collect()
 }
 
-fn heuristic(point: &Point<i16>, goal: &Point<i16>) -> u32 {
+fn heuristic(point: &TilePoint, goal: &TilePoint) -> u32 {
     (pathfinding::prelude::absdiff(point.x, goal.x)
         + pathfinding::prelude::absdiff(point.y, goal.y)) as u32
 }

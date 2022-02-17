@@ -1,5 +1,7 @@
 use crate::color::Color;
-use crate::common::TILE_W;
+use crate::common::PixelPoint;
+use crate::common::Size2d;
+use crate::common::TILE_SIZE;
 use crate::screen::DefaultScreen;
 use crate::screen::Pixel;
 use crate::screen::Sprite;
@@ -16,7 +18,7 @@ impl Renderer {
         Self { screen }
     }
 
-    pub fn resize(&mut self) -> (u16, u16) {
+    pub fn resize(&mut self) -> Size2d {
         self.screen.resize()
     }
 
@@ -46,8 +48,10 @@ impl Renderer {
                 for step in path {
                     self.screen.draw(
                         &astar_path_sprite,
-                        step.x * 3 + state.map_pos.x,
-                        step.y + state.map_pos.y,
+                        PixelPoint {
+                            x: step.x * 3 + state.map_pos.x,
+                            y: step.y + state.map_pos.y,
+                        },
                     );
                 }
             }
@@ -64,8 +68,10 @@ impl Renderer {
 
             self.screen.draw(
                 &astar_start_sprite,
-                state.astar_start.x + state.map_pos.x,
-                state.astar_start.y + state.map_pos.y,
+                PixelPoint {
+                    x: state.astar_start.x + state.map_pos.x,
+                    y: state.astar_start.y + state.map_pos.y,
+                },
             );
         }
 
@@ -80,8 +86,10 @@ impl Renderer {
 
             self.screen.draw(
                 &astar_goal_sprite,
-                state.astar_goal.x + state.map_pos.x,
-                state.astar_goal.y + state.map_pos.y,
+                PixelPoint {
+                    x: state.astar_goal.x + state.map_pos.x,
+                    y: state.astar_goal.y + state.map_pos.y,
+                },
             );
         }
     }
@@ -94,44 +102,48 @@ impl Renderer {
                 fg_color: 0,
             },
         }];
-        let width = 1;
-        let height = 1;
 
         let cursor = Sprite {
             pixels,
-            width,
-            height,
+            size: Size2d {
+                width: 1,
+                height: 1,
+            },
         };
 
         self.screen.draw(
             &cursor,
-            state.cursor_pos.x as i16,
-            state.cursor_pos.y as i16,
+            PixelPoint {
+                x: state.cursor_pos.x,
+                y: state.cursor_pos.y,
+            },
         );
     }
 
     fn draw_debug_info(&mut self, state: &State) {
         let state_info_str = format!(
             "cols: {}, rows: {}, time: {}",
-            state.screen_width, state.screen_height, state.elapsed_time,
+            state.screen_size.width, state.screen_size.height, state.elapsed_time,
         );
         let state_info = Sprite::from(state_info_str);
-        self.screen.draw(&state_info, 10, 3);
+        self.screen
+            .draw(&state_info, PixelPoint { x: 10, y: 3 });
 
         let pos_info_str = format!(
             "map_x: {}, map_y: {}, cursor_x: {}, cursor_y: {}",
             state.map_pos.x, state.map_pos.y, state.cursor_pos.x, state.cursor_pos.y
         );
         let pos_info = Sprite::from(pos_info_str);
-        self.screen.draw(&pos_info, 10, 4);
+        self.screen
+            .draw(&pos_info, PixelPoint { x: 10, y: 4 });
     }
 
     fn draw_floor(&mut self, state: &State) {
         let mut pixels = Vec::new();
-        let width = (state.screen_width / TILE_W) * TILE_W;
-        let height = state.screen_height;
+        let width = (state.screen_size.width / TILE_SIZE.width) * TILE_SIZE.width;
+        let height = state.screen_size.height;
 
-        for _i in 0..((width / TILE_W) * height) {
+        for _i in 0..((width / TILE_SIZE.width) * height) {
             pixels.push(Pixel::from('['));
             pixels.push(Pixel::from('-'));
             pixels.push(Pixel::from(']'));
@@ -139,17 +151,22 @@ impl Renderer {
 
         let sprite = Sprite {
             pixels,
-            width,
-            height,
+            size: Size2d { width, height },
         };
 
-        self.screen.draw(&sprite, 0, 0);
+        self.screen
+            .draw(&sprite, PixelPoint { x: 0, y: 0 });
     }
 
     fn draw_map(&mut self, state: &State) {
         let sprite = state.get_map_sprite();
 
-        self.screen
-            .draw(&sprite, state.map_pos.x, state.map_pos.y);
+        self.screen.draw(
+            &sprite,
+            PixelPoint {
+                x: state.map_pos.x,
+                y: state.map_pos.y,
+            },
+        );
     }
 }

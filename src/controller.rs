@@ -9,8 +9,8 @@ use std::time::Duration;
 use termion::event::Key;
 use termion::input::TermRead;
 
-use crate::common::Point;
 use crate::common::FRAMES_PER_SECOND;
+use crate::common::TilePoint;
 use crate::renderer::Renderer;
 use crate::state::get_shortest_path;
 use crate::state::State;
@@ -44,8 +44,10 @@ impl Controller {
 
     pub fn run(&mut self) {
         self.resize();
-        self.state.cursor_pos =
-            Point::new(self.state.screen_width / 2, self.state.screen_height / 2);
+        self.state.cursor_pos = TilePoint {
+            x: self.state.screen_size.width / 2,
+            y: self.state.screen_size.height / 2,
+        };
 
         let elapse_sender = self.sender.clone();
         let key_sender = self.sender.clone();
@@ -103,8 +105,14 @@ impl Controller {
                 Key::Char('s') => self.state.set_astar_start(),
                 Key::Char('g') => self.state.set_astar_goal(),
                 Key::Char('\n') => {
-                    let start = Point::new(self.state.astar_start.x / 3, self.state.astar_start.y);
-                    let goal = Point::new(self.state.astar_goal.x / 3, self.state.astar_goal.y);
+                    let start = TilePoint {
+                        x: self.state.astar_start.x / 3,
+                        y: self.state.astar_start.y,
+                    };
+                    let goal = TilePoint {
+                        x: self.state.astar_goal.x / 3,
+                        y: self.state.astar_goal.y,
+                    };
                     let x =
                         get_shortest_path(&start, &goal, &self.state.map, &self.state.tile_config);
 
@@ -123,8 +131,7 @@ impl Controller {
     }
 
     fn resize(&mut self) {
-        let (screen_width, screen_height) = self.renderer.resize();
-        self.state
-            .resize(screen_width, screen_height);
+        let size = self.renderer.resize();
+        self.state.resize(&size);
     }
 }
