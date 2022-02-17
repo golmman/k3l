@@ -34,6 +34,26 @@ impl Renderer {
 
     fn draw_astar(&mut self, state: &State) {
         {
+            let astar_path_sprite = Sprite::from_color_text(
+                " * ",
+                Color {
+                    bg_color: 28,
+                    fg_color: 0,
+                },
+            );
+
+            if let Some(path) = &state.astar_path {
+                for step in path {
+                    self.screen.draw(
+                        &astar_path_sprite,
+                        step.x * 3 + state.map_pos.x,
+                        step.y + state.map_pos.y,
+                    );
+                }
+            }
+        }
+
+        {
             let astar_start_sprite = Sprite::from_color_text(
                 " S ",
                 Color {

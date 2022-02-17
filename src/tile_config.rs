@@ -6,7 +6,7 @@ use crate::color::Color;
 
 pub type TileId = [char; 3];
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum TileState {
     Solid,
     Liquid,
@@ -68,6 +68,12 @@ pub struct BaseTile {
     pub key: String,
     pub name: String,
     pub tile_strings: Vec<TileString>,
+}
+
+impl BaseTile {
+    pub fn is_traversable(&self) -> bool {
+        self.block_state == TileState::Gas && self.floor_state == TileState::Solid
+    }
 }
 
 #[derive(Clone, Debug)]

@@ -12,6 +12,7 @@ use termion::input::TermRead;
 use crate::common::Point;
 use crate::common::FRAMES_PER_SECOND;
 use crate::renderer::Renderer;
+use crate::state::get_shortest_path;
 use crate::state::State;
 
 pub enum TerminalEvent {
@@ -101,6 +102,15 @@ impl Controller {
 
                 Key::Char('s') => self.state.set_astar_start(),
                 Key::Char('g') => self.state.set_astar_goal(),
+                Key::Char('\n') => {
+                    let start = Point::new(self.state.astar_start.x / 3, self.state.astar_start.y);
+                    let goal = Point::new(self.state.astar_goal.x / 3, self.state.astar_goal.y);
+                    let x =
+                        get_shortest_path(&start, &goal, &self.state.map, &self.state.tile_config);
+
+                    //self.state.astar_path.clear();
+                    self.state.astar_path = x;
+                }
                 _ => {}
             },
             TerminalEvent::Resize => self.resize(),

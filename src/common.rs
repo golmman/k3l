@@ -5,6 +5,7 @@ pub const TILE_W: u16 = 3;
 pub const TILE_H: u16 = 1;
 pub const FRAMES_PER_SECOND: u16 = 8;
 
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Point<W> {
     pub x: W,
     pub y: W,
@@ -13,6 +14,36 @@ pub struct Point<W> {
 impl<W> Point<W> {
     pub fn new(x: W, y: W) -> Self {
         Self { x, y }
+    }
+}
+
+impl Point<i16> {
+    pub fn left(&self) -> Self {
+        Self {
+            x: self.x - 1,
+            y: self.y,
+        }
+    }
+
+    pub fn right(&self) -> Self {
+        Self {
+            x: self.x + 1,
+            y: self.y,
+        }
+    }
+
+    pub fn up(&self) -> Self {
+        Self {
+            x: self.x,
+            y: self.y - 1,
+        }
+    }
+
+    pub fn down(&self) -> Self {
+        Self {
+            x: self.x,
+            y: self.y + 1,
+        }
     }
 }
 

@@ -48,7 +48,7 @@ id = "[v]"
 bg_color = 1
 fg_color = 0
 name = "lava floor"
-floor_state = "solid"
+floor_state = "liquid"
 block_state = "gas"
 tile_strings = [
     #[":-O", "   ", "   ", "   ", "   ", "   ", "   ", "   "],
