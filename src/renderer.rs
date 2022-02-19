@@ -1,6 +1,5 @@
 use crate::color::Color;
 use crate::common::ScreenPoint;
-use crate::common::Size2d;
 use crate::common::TILE_SIZE;
 use crate::screen::DefaultScreen;
 use crate::screen::Pixel;
@@ -18,7 +17,7 @@ impl Renderer {
         Self { screen }
     }
 
-    pub fn resize(&mut self) -> Size2d {
+    pub fn resize(&mut self) -> ScreenPoint {
         self.screen.resize()
     }
 
@@ -48,10 +47,7 @@ impl Renderer {
                 for step in path {
                     self.screen.draw(
                         &astar_path_sprite,
-                        ScreenPoint {
-                            x: step.x * 3 + state.map_pos.x,
-                            y: step.y + state.map_pos.y,
-                        },
+                        ScreenPoint::new(step.x * 3 + state.map_pos.x, step.y + state.map_pos.y),
                     );
                 }
             }
@@ -68,10 +64,10 @@ impl Renderer {
 
             self.screen.draw(
                 &astar_start_sprite,
-                ScreenPoint {
-                    x: state.astar_start.x + state.map_pos.x,
-                    y: state.astar_start.y + state.map_pos.y,
-                },
+                ScreenPoint::new(
+                    state.astar_start.x + state.map_pos.x,
+                    state.astar_start.y + state.map_pos.y,
+                ),
             );
         }
 
@@ -86,10 +82,10 @@ impl Renderer {
 
             self.screen.draw(
                 &astar_goal_sprite,
-                ScreenPoint {
-                    x: state.astar_goal.x + state.map_pos.x,
-                    y: state.astar_goal.y + state.map_pos.y,
-                },
+                ScreenPoint::new(
+                    state.astar_goal.x + state.map_pos.x,
+                    state.astar_goal.y + state.map_pos.y,
+                ),
             );
         }
     }
@@ -105,29 +101,25 @@ impl Renderer {
 
         let cursor = Sprite {
             pixels,
-            size: Size2d {
-                width: 1,
-                height: 1,
-            },
+            size: ScreenPoint::new(1, 1),
         };
 
         self.screen.draw(
             &cursor,
-            ScreenPoint {
-                x: state.cursor_pos.x,
-                y: state.cursor_pos.y,
-            },
+            ScreenPoint::new(state.cursor_pos.x, state.cursor_pos.y),
         );
     }
 
     fn draw_debug_info(&mut self, state: &State) {
         let state_info_str = format!(
             "cols: {}, rows: {}, time: {}",
-            state.screen_size.width, state.screen_size.height, state.elapsed_time,
+            state.screen_size.width(),
+            state.screen_size.height(),
+            state.elapsed_time,
         );
         let state_info = Sprite::from(state_info_str);
         self.screen
-            .draw(&state_info, ScreenPoint { x: 10, y: 3 });
+            .draw(&state_info, ScreenPoint::new(10, 3));
 
         let pos_info_str = format!(
             "map_x: {}, map_y: {}, cursor_x: {}, cursor_y: {}",
@@ -135,15 +127,15 @@ impl Renderer {
         );
         let pos_info = Sprite::from(pos_info_str);
         self.screen
-            .draw(&pos_info, ScreenPoint { x: 10, y: 4 });
+            .draw(&pos_info, ScreenPoint::new(10, 4));
     }
 
     fn draw_floor(&mut self, state: &State) {
         let mut pixels = Vec::new();
-        let width = (state.screen_size.width / TILE_SIZE.width) * TILE_SIZE.width;
-        let height = state.screen_size.height;
+        let width = (state.screen_size.width() / TILE_SIZE.width()) * TILE_SIZE.width();
+        let height = state.screen_size.height();
 
-        for _i in 0..((width / TILE_SIZE.width) * height) {
+        for _i in 0..((width / TILE_SIZE.width()) * height) {
             pixels.push(Pixel::from('['));
             pixels.push(Pixel::from('-'));
             pixels.push(Pixel::from(']'));
@@ -151,22 +143,17 @@ impl Renderer {
 
         let sprite = Sprite {
             pixels,
-            size: Size2d { width, height },
+            size: ScreenPoint::new(width, height),
         };
 
         self.screen
-            .draw(&sprite, ScreenPoint { x: 0, y: 0 });
+            .draw(&sprite, ScreenPoint::new(0, 0));
     }
 
     fn draw_map(&mut self, state: &State) {
         let sprite = state.get_map_sprite();
 
-        self.screen.draw(
-            &sprite,
-            ScreenPoint {
-                x: state.map_pos.x,
-                y: state.map_pos.y,
-            },
-        );
+        self.screen
+            .draw(&sprite, ScreenPoint::new(state.map_pos.x, state.map_pos.y));
     }
 }

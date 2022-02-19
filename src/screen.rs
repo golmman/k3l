@@ -7,9 +7,8 @@ use termion::raw::RawTerminal;
 
 use crate::color::Color;
 use crate::common::intersect;
-use crate::common::ScreenPoint;
 use crate::common::RectAbsolute;
-use crate::common::Size2d;
+use crate::common::ScreenPoint;
 
 pub type DefaultScreen = Screen<RawTerminal<Stdout>>;
 
@@ -30,7 +29,7 @@ impl From<char> for Pixel {
 
 pub struct Sprite {
     pub pixels: Vec<Pixel>,
-    pub size: Size2d,
+    pub size: ScreenPoint,
 }
 
 impl Sprite {
@@ -45,7 +44,7 @@ impl Sprite {
 
         Self {
             pixels,
-            size: Size2d { width, height },
+            size: ScreenPoint::new(width, height),
         }
     }
 }
@@ -75,7 +74,7 @@ pub struct Screen<W: Write> {
     // TODO: make sprite?
     pixel_buffer: Vec<Pixel>,
 
-    size: Size2d,
+    size: ScreenPoint,
 }
 
 impl DefaultScreen {
@@ -83,16 +82,16 @@ impl DefaultScreen {
         Screen::from(stdout().into_raw_mode().unwrap())
     }
 
-    pub fn resize(&mut self) -> Size2d {
+    pub fn resize(&mut self) -> ScreenPoint {
         let (cols, rows) = termion::terminal_size().unwrap();
-        self.size.width = cols as i32;
-        self.size.height = rows as i32;
+
+        self.size = ScreenPoint::new(cols as i32, rows as i32);
 
         self.size.clone()
     }
 
     pub fn clear(&mut self) {
-        let buffer_size = (self.size.width * self.size.height) as usize;
+        let buffer_size = (self.size.width() * self.size.height()) as usize;
         self.prelude_buffer = String::new();
         self.pixel_buffer = vec![Pixel::from(' '); buffer_size];
 
@@ -104,23 +103,23 @@ impl DefaultScreen {
         let screen_rect = RectAbsolute {
             x1: 0,
             y1: 0,
-            x2: self.size.width,
-            y2: self.size.height,
+            x2: self.size.width(),
+            y2: self.size.height(),
         };
 
         let sprite_rect = RectAbsolute {
             x1: p.x,
             y1: p.y,
-            x2: p.x + sprite.size.width,
-            y2: p.y + sprite.size.height,
+            x2: p.x + sprite.size.width(),
+            y2: p.y + sprite.size.height(),
         };
 
         let intersection = intersect(&screen_rect, &sprite_rect);
 
         for sprite_y in intersection.y1..intersection.y2 {
             for sprite_x in intersection.x1..intersection.x2 {
-                let screen_i = (self.size.width * sprite_y + sprite_x) as usize;
-                let sprite_i = (sprite.size.width * (sprite_y - p.y) + sprite_x - p.x) as usize;
+                let screen_i = (self.size.width() * sprite_y + sprite_x) as usize;
+                let sprite_i = (sprite.size.width() * (sprite_y - p.y) + sprite_x - p.x) as usize;
 
                 self.pixel_buffer[screen_i] = sprite.pixels[sprite_i];
             }
@@ -133,14 +132,14 @@ impl DefaultScreen {
 
         s.push_str(&self.prelude_buffer);
 
-        for y in 0..self.size.height {
+        for y in 0..self.size.height() {
             let row = y + 1;
             s.push_str(&format!("\x1b[{row};1H")); // goto (row, 1)
 
             // TODO: further optimization is possible, like recycling bg/fg color only
             let mut last_color = Color::null();
-            for x in 0..self.size.width {
-                let i = (self.size.width * y + x) as usize;
+            for x in 0..self.size.width() {
+                let i = (self.size.width() * y + x) as usize;
                 let ch = self.pixel_buffer[i].ch;
                 let color = self.pixel_buffer[i].color;
 
@@ -186,10 +185,7 @@ impl<W: Write> From<W> for Screen<W> {
             main_display: buffer,
             prelude_buffer,
             pixel_buffer,
-            size: Size2d {
-                width: cols as i32,
-                height: rows as i32,
-            },
+            size: ScreenPoint::new(cols as i32, rows as i32),
         }
     }
 }
