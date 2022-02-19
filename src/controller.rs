@@ -9,8 +9,8 @@ use std::time::Duration;
 use termion::event::Key;
 use termion::input::TermRead;
 
+use crate::common::MapPoint;
 use crate::common::FRAMES_PER_SECOND;
-use crate::common::TilePoint;
 use crate::renderer::Renderer;
 use crate::state::get_shortest_path;
 use crate::state::State;
@@ -44,7 +44,7 @@ impl Controller {
 
     pub fn run(&mut self) {
         self.resize();
-        self.state.cursor_pos = TilePoint {
+        self.state.cursor_pos = MapPoint {
             x: self.state.screen_size.width / 2,
             y: self.state.screen_size.height / 2,
         };
@@ -105,11 +105,11 @@ impl Controller {
                 Key::Char('s') => self.state.set_astar_start(),
                 Key::Char('g') => self.state.set_astar_goal(),
                 Key::Char('\n') => {
-                    let start = TilePoint {
+                    let start = MapPoint {
                         x: self.state.astar_start.x / 3,
                         y: self.state.astar_start.y,
                     };
-                    let goal = TilePoint {
+                    let goal = MapPoint {
                         x: self.state.astar_goal.x / 3,
                         y: self.state.astar_goal.y,
                     };

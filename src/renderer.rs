@@ -1,5 +1,5 @@
 use crate::color::Color;
-use crate::common::PixelPoint;
+use crate::common::ScreenPoint;
 use crate::common::Size2d;
 use crate::common::TILE_SIZE;
 use crate::screen::DefaultScreen;
@@ -48,7 +48,7 @@ impl Renderer {
                 for step in path {
                     self.screen.draw(
                         &astar_path_sprite,
-                        PixelPoint {
+                        ScreenPoint {
                             x: step.x * 3 + state.map_pos.x,
                             y: step.y + state.map_pos.y,
                         },
@@ -68,7 +68,7 @@ impl Renderer {
 
             self.screen.draw(
                 &astar_start_sprite,
-                PixelPoint {
+                ScreenPoint {
                     x: state.astar_start.x + state.map_pos.x,
                     y: state.astar_start.y + state.map_pos.y,
                 },
@@ -86,7 +86,7 @@ impl Renderer {
 
             self.screen.draw(
                 &astar_goal_sprite,
-                PixelPoint {
+                ScreenPoint {
                     x: state.astar_goal.x + state.map_pos.x,
                     y: state.astar_goal.y + state.map_pos.y,
                 },
@@ -113,7 +113,7 @@ impl Renderer {
 
         self.screen.draw(
             &cursor,
-            PixelPoint {
+            ScreenPoint {
                 x: state.cursor_pos.x,
                 y: state.cursor_pos.y,
             },
@@ -127,7 +127,7 @@ impl Renderer {
         );
         let state_info = Sprite::from(state_info_str);
         self.screen
-            .draw(&state_info, PixelPoint { x: 10, y: 3 });
+            .draw(&state_info, ScreenPoint { x: 10, y: 3 });
 
         let pos_info_str = format!(
             "map_x: {}, map_y: {}, cursor_x: {}, cursor_y: {}",
@@ -135,7 +135,7 @@ impl Renderer {
         );
         let pos_info = Sprite::from(pos_info_str);
         self.screen
-            .draw(&pos_info, PixelPoint { x: 10, y: 4 });
+            .draw(&pos_info, ScreenPoint { x: 10, y: 4 });
     }
 
     fn draw_floor(&mut self, state: &State) {
@@ -155,7 +155,7 @@ impl Renderer {
         };
 
         self.screen
-            .draw(&sprite, PixelPoint { x: 0, y: 0 });
+            .draw(&sprite, ScreenPoint { x: 0, y: 0 });
     }
 
     fn draw_map(&mut self, state: &State) {
@@ -163,7 +163,7 @@ impl Renderer {
 
         self.screen.draw(
             &sprite,
-            PixelPoint {
+            ScreenPoint {
                 x: state.map_pos.x,
                 y: state.map_pos.y,
             },

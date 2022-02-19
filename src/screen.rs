@@ -7,7 +7,7 @@ use termion::raw::RawTerminal;
 
 use crate::color::Color;
 use crate::common::intersect;
-use crate::common::PixelPoint;
+use crate::common::ScreenPoint;
 use crate::common::RectAbsolute;
 use crate::common::Size2d;
 
@@ -100,7 +100,7 @@ impl DefaultScreen {
         //self.prelude_buffer.push_str("\x1b[H"); // goto to (1, 1)
     }
 
-    pub fn draw(&mut self, sprite: &Sprite, p: PixelPoint) {
+    pub fn draw(&mut self, sprite: &Sprite, p: ScreenPoint) {
         let screen_rect = RectAbsolute {
             x1: 0,
             y1: 0,

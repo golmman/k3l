@@ -4,7 +4,7 @@ use std::path::Path;
 use rand::random;
 
 use crate::common::Size2d;
-use crate::common::TilePoint;
+use crate::common::MapPoint;
 use crate::common::TILE_SIZE;
 use crate::screen::Pixel;
 use crate::screen::Sprite;
@@ -13,7 +13,7 @@ use crate::tile_config::TileId;
 
 #[derive(Debug)]
 pub struct TilePos {
-    pos: TilePoint,
+    pos: MapPoint,
     tile_id: TileId,
 }
 
@@ -63,7 +63,7 @@ pub struct Map {
 }
 
 impl Map {
-    pub fn get_tile_pos(&self, point: TilePoint) -> Option<TilePos> {
+    pub fn get_tile_pos(&self, point: MapPoint) -> Option<TilePos> {
         if point.x < 0 || point.x >= self.size.width {
             return None;
         }
@@ -79,7 +79,7 @@ impl Map {
         })
     }
 
-    pub fn get_neighborhood4(&self, point: &TilePoint) -> Neighborhood4 {
+    pub fn get_neighborhood4(&self, point: &MapPoint) -> Neighborhood4 {
         let left = self.get_tile_pos(point.left());
         let right = self.get_tile_pos(point.right());
         let up = self.get_tile_pos(point.up());
@@ -151,14 +151,14 @@ pub struct Tile {
 }
 
 pub struct State {
-    pub astar_start: TilePoint,
-    pub astar_goal: TilePoint,
-    pub astar_path: Option<Vec<TilePoint>>,
+    pub astar_start: MapPoint,
+    pub astar_goal: MapPoint,
+    pub astar_path: Option<Vec<MapPoint>>,
 
-    pub cursor_pos: TilePoint,
+    pub cursor_pos: MapPoint,
     pub elapsed_time: u64,
     pub map: Map,
-    pub map_pos: TilePoint,
+    pub map_pos: MapPoint,
     pub tile_config: TileConfig,
 
     pub screen_size: Size2d,
@@ -166,15 +166,15 @@ pub struct State {
 
 impl State {
     pub fn new() -> Self {
-        let cursor_pos = TilePoint { x: 1, y: 1 };
+        let cursor_pos = MapPoint { x: 1, y: 1 };
         let elapsed_time = 0;
         let tile_config = TileConfig::from_file("tile_config.toml");
         let map = Map::from_file("example_map.toml", &tile_config);
-        let map_pos = TilePoint { x: 72, y: 1 };
+        let map_pos = MapPoint { x: 72, y: 1 };
 
         Self {
-            astar_start: TilePoint { x: 0, y: 0 },
-            astar_goal: TilePoint { x: 0, y: 0 },
+            astar_start: MapPoint { x: 0, y: 0 },
+            astar_goal: MapPoint { x: 0, y: 0 },
             astar_path: None,
 
             cursor_pos,
@@ -300,11 +300,11 @@ impl State {
 }
 
 pub fn get_shortest_path(
-    start: &TilePoint,
-    goal: &TilePoint,
+    start: &MapPoint,
+    goal: &MapPoint,
     map: &Map,
     tile_config: &TileConfig,
-) -> Option<Vec<TilePoint>> {
+) -> Option<Vec<MapPoint>> {
     let path = pathfinding::prelude::astar(
         start,
         |p| successors(p, map, tile_config),
@@ -315,7 +315,7 @@ pub fn get_shortest_path(
     path.map(|p| p.0)
 }
 
-fn successors(point: &TilePoint, map: &Map, tile_config: &TileConfig) -> Vec<(TilePoint, u32)> {
+fn successors(point: &MapPoint, map: &Map, tile_config: &TileConfig) -> Vec<(MapPoint, u32)> {
     let neigh_tiles: Vec<TilePos> = map
         .get_neighborhood4(point)
         .filter_traversable(tile_config)
@@ -327,7 +327,7 @@ fn successors(point: &TilePoint, map: &Map, tile_config: &TileConfig) -> Vec<(Ti
         .collect()
 }
 
-fn heuristic(point: &TilePoint, goal: &TilePoint) -> u32 {
+fn heuristic(point: &MapPoint, goal: &MapPoint) -> u32 {
     (pathfinding::prelude::absdiff(point.x, goal.x)
         + pathfinding::prelude::absdiff(point.y, goal.y)) as u32
 }
