@@ -35,13 +35,7 @@ impl Renderer {
 
     fn draw_astar(&mut self, state: &State) {
         {
-            let astar_path_sprite = Sprite::from_color_text(
-                " * ",
-                Color {
-                    bg_color: 28,
-                    fg_color: 0,
-                },
-            );
+            let astar_path_sprite = Sprite::from_color_text(" * ", Color::new(28, 0));
 
             if let Some(path) = &state.astar_path {
                 for step in path {
@@ -54,13 +48,7 @@ impl Renderer {
         }
 
         {
-            let astar_start_sprite = Sprite::from_color_text(
-                " S ",
-                Color {
-                    bg_color: 34,
-                    fg_color: 0,
-                },
-            );
+            let astar_start_sprite = Sprite::from_color_text(" S ", Color::new(34, 0));
 
             self.screen.draw(
                 &astar_start_sprite,
@@ -73,13 +61,7 @@ impl Renderer {
         }
 
         {
-            let astar_goal_sprite = Sprite::from_color_text(
-                " G ",
-                Color {
-                    bg_color: 34,
-                    fg_color: 0,
-                },
-            );
+            let astar_goal_sprite = Sprite::from_color_text(" G ", Color::new(34, 0));
 
             self.screen.draw(
                 &astar_goal_sprite,
@@ -96,8 +78,8 @@ impl Renderer {
         let pixels = vec![Pixel {
             ch: 'X',
             color: Color {
-                bg_color: 2,
-                fg_color: 0,
+                bg_color: None,
+                fg_color: Some(2),
             },
         }];
 
@@ -107,7 +89,7 @@ impl Renderer {
         };
 
         self.screen
-            .draw(&cursor, state.cursor_pos.clone().into());
+            .draw(&cursor, ScreenPoint::from(state.cursor_pos.clone()).right());
     }
 
     fn draw_debug_info(&mut self, state: &State) {

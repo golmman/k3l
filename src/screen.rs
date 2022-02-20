@@ -51,13 +51,7 @@ impl Sprite {
 
 impl From<&str> for Sprite {
     fn from(s: &str) -> Self {
-        Self::from_color_text(
-            s,
-            Color {
-                bg_color: 0,
-                fg_color: 7,
-            },
-        )
+        Self::from_color_text(s, Color::new(0, 7))
     }
 }
 
@@ -128,7 +122,6 @@ impl DefaultScreen {
 
     pub fn display(&mut self) {
         let mut s = String::new();
-        let reset = Color::RESET;
 
         s.push_str(&self.prelude_buffer);
 
@@ -136,24 +129,34 @@ impl DefaultScreen {
             let row = y + 1;
             s.push_str(&format!("\x1b[{row};1H")); // goto (row, 1)
 
-            // TODO: further optimization is possible, like recycling bg/fg color only
-            let mut last_color = Color::null();
+            let mut last_color = Color::none();
+
             for x in 0..self.size.width() {
                 let i = (self.size.width() * y + x) as usize;
                 let ch = self.pixel_buffer[i].ch;
                 let color = self.pixel_buffer[i].color;
 
-                if last_color == color {
-                    s.push(ch);
-                } else {
-                    s.push_str(&format!("{reset}{color}{ch}"));
+                let mut change_color = Color::none();
+
+                if color.bg_color.is_some() && color.bg_color != last_color.bg_color {
+                    change_color.bg_color = color.bg_color;
                 }
 
-                last_color = color;
+                if color.fg_color.is_some() && color.fg_color != last_color.fg_color {
+                    change_color.fg_color = color.fg_color;
+                }
+
+                s.push_str(&format!("{change_color}{ch}"));
+
+                if change_color.bg_color.is_some() {
+                    last_color.bg_color = change_color.bg_color;
+                }
+
+                if change_color.fg_color.is_some() {
+                    last_color.fg_color = change_color.fg_color;
+                }
             }
         }
-
-        s.push_str(reset);
 
         self.main_display
             .write_all(s.as_bytes())
@@ -194,7 +197,8 @@ impl<W: Write> Drop for Screen<W> {
     fn drop(&mut self) {
         write!(
             self.main_display,
-            "{}{}{}",
+            "{}{}{}{}",
+            Color::RESET,
             termion::clear::All,
             termion::cursor::Goto(1, 1),
             termion::cursor::Show,

@@ -1,3 +1,10 @@
+same calc for bg and fg
+
+| `last_color` | `current_color` | set color | update `last_color` |
+| ------------ | --------------- | --------- | ------------------- |
+| 1            | 2               | 2         | y                   |
+| 1            | 1               | None      | n                   |
+| 1            | None            | None      | n                   |
 
 ```mermaid
 flowchart TB
@@ -49,6 +56,7 @@ IIIIIII
 ```
 
 cursor size is 7 x 17, so what are th best sizes?
+
 ```
 7*0, 17*0 --- 0
 7*2, 17*1 --- -3
@@ -63,9 +71,9 @@ cursor size is 7 x 17, so what are th best sizes?
 7*19, 17*8 --- -3
 ```
 
-
 521 x 420
 1.24047619048
+
 ```
 [x][x][x][x][x][x][x][x][x][x][x][x][x][x][x][x][x][x][x][x][x][x][x][x][x]
 [x][x][x][x][x][x][x][x][x][x][x][x][x][x][x][x][x][x][x][x][x][x][x][x][x]
@@ -96,6 +104,7 @@ cursor size is 7 x 17, so what are th best sizes?
 
 529 x 642
 1.21361058601
+
 ```
 [][][][][][][][][][][][[][][][][][][][][][][][][][]][][][][][][][][][][][][]
 [][][][][][][][][][][][[][][][][][][][][][][][][][]][][][][][][][][][][][][]

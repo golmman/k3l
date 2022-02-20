@@ -98,7 +98,7 @@ impl TileConfig {
             let fg_color = t["fg_color"].as_integer().unwrap() as u8;
 
             let key = key.to_string();
-            let color = Color { bg_color, fg_color };
+            let color = Color::new(bg_color, fg_color);
             let name = t["name"].as_str().unwrap().to_string();
             let floor_state = TileState::from(t["floor_state"].as_str().unwrap());
             let block_state = TileState::from(t["block_state"].as_str().unwrap());
