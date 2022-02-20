@@ -166,18 +166,17 @@ pub struct State {
 
 impl State {
     pub fn new() -> Self {
-        let cursor_pos = MapPoint::new(1, 1);
         let elapsed_time = 0;
         let tile_config = TileConfig::from_file("tile_config.toml");
         let map = Map::from_file("example_map.toml", &tile_config);
-        let map_pos = MapPoint::new(72, 1);
+        let map_pos = MapPoint::new(24, 1);
 
         Self {
             astar_start: MapPoint::new(0, 0),
             astar_goal: MapPoint::new(0, 0),
             astar_path: None,
 
-            cursor_pos,
+            cursor_pos: MapPoint::new(0, 0),
             elapsed_time,
             map,
             map_pos,
@@ -226,73 +225,65 @@ impl State {
     }
 
     pub fn set_astar_start(&mut self) {
-        self.astar_start.x = self.cursor_pos.x - self.map_pos.x - 1;
+        self.astar_start.x = self.cursor_pos.x - self.map_pos.x;
         self.astar_start.y = self.cursor_pos.y - self.map_pos.y;
     }
 
     pub fn set_astar_goal(&mut self) {
-        self.astar_goal.x = self.cursor_pos.x - self.map_pos.x - 1;
+        self.astar_goal.x = self.cursor_pos.x - self.map_pos.x;
         self.astar_goal.y = self.cursor_pos.y - self.map_pos.y;
     }
 
     pub fn move_map_left(&mut self) {
-        self.map_pos.x -= TILE_SIZE.width();
+        self.map_pos.x -= 1;
     }
 
     pub fn move_map_right(&mut self) {
-        self.map_pos.x += TILE_SIZE.width();
+        self.map_pos.x += 1;
     }
 
     pub fn move_map_up(&mut self) {
-        self.map_pos.y -= TILE_SIZE.height();
+        self.map_pos.y -= 1;
     }
 
     pub fn move_map_down(&mut self) {
-        self.map_pos.y += TILE_SIZE.height();
+        self.map_pos.y += 1;
     }
 
     pub fn move_cursor_left(&mut self) {
-        if self.cursor_pos.x < TILE_SIZE.width() {
-            self.move_map_right();
-            return;
-        }
-        self.cursor_pos.x -= TILE_SIZE.width();
+        self.cursor_pos.x -= 1;
 
-        // align cursor to pixels
-        self.cursor_pos.x = ((self.cursor_pos.x - 1) / TILE_SIZE.width()) * TILE_SIZE.width()
-            + TILE_SIZE.width() / 2;
+        if self.cursor_pos.x <= 0 {
+            self.cursor_pos.x = 0;
+            self.move_map_right();
+        }
     }
 
     pub fn move_cursor_right(&mut self) {
-        if self.cursor_pos.x + TILE_SIZE.width()
-            > (self.screen_size.width() / TILE_SIZE.width()) * TILE_SIZE.width() - 1
-        {
-            self.move_map_left();
-            return;
-        }
-        self.cursor_pos.x += TILE_SIZE.width();
+        self.cursor_pos.x += 1;
 
-        // align cursor to pixels
-        self.cursor_pos.x = ((self.cursor_pos.x - 1) / TILE_SIZE.width()) * TILE_SIZE.width()
-            + TILE_SIZE.width() / 2;
+        if self.cursor_pos.x >= self.screen_size.width() - 1 {
+            self.cursor_pos.x = self.screen_size.width() - 1;
+            self.move_map_left();
+        }
     }
 
     pub fn move_cursor_up(&mut self) {
-        // TODO: align to pixel
-        if self.cursor_pos.y < TILE_SIZE.height() {
+        self.cursor_pos.y -= 1;
+
+        if self.cursor_pos.y <= 0 {
+            self.cursor_pos.y = 0;
             self.move_map_down();
-            return;
         }
-        self.cursor_pos.y -= TILE_SIZE.height();
     }
 
     pub fn move_cursor_down(&mut self) {
-        // TODO: align to pixel
-        if self.cursor_pos.y + TILE_SIZE.height() > self.screen_size.height() - 1 {
+        self.cursor_pos.y += 1;
+
+        if self.cursor_pos.y >= self.screen_size.height() - 1 {
+            self.cursor_pos.y = self.screen_size.height() - 1;
             self.move_map_up();
-            return;
         }
-        self.cursor_pos.y += TILE_SIZE.height();
     }
 }
 

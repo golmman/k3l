@@ -74,7 +74,7 @@ pub struct Screen<W: Write> {
     // TODO: make sprite?
     pixel_buffer: Vec<Pixel>,
 
-    size: ScreenPoint,
+    pub size: ScreenPoint,
 }
 
 impl DefaultScreen {

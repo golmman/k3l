@@ -105,11 +105,12 @@ impl Controller {
                 Key::Char('s') => self.state.set_astar_start(),
                 Key::Char('g') => self.state.set_astar_goal(),
                 Key::Char('\n') => {
-                    let start =
-                        MapPoint::new(self.state.astar_start.x / 3, self.state.astar_start.y);
-                    let goal = MapPoint::new(self.state.astar_goal.x / 3, self.state.astar_goal.y);
-                    let x =
-                        get_shortest_path(&start, &goal, &self.state.map, &self.state.tile_config);
+                    let x = get_shortest_path(
+                        &self.state.astar_start,
+                        &self.state.astar_goal,
+                        &self.state.map,
+                        &self.state.tile_config,
+                    );
 
                     //self.state.astar_path.clear();
                     self.state.astar_path = x;

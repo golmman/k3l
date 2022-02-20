@@ -1,6 +1,6 @@
 use crate::color::Color;
+use crate::common::MapPoint;
 use crate::common::ScreenPoint;
-use crate::common::TILE_SIZE;
 use crate::screen::DefaultScreen;
 use crate::screen::Pixel;
 use crate::screen::Sprite;
@@ -47,7 +47,7 @@ impl Renderer {
                 for step in path {
                     self.screen.draw(
                         &astar_path_sprite,
-                        ScreenPoint::new(step.x * 3 + state.map_pos.x, step.y + state.map_pos.y),
+                        MapPoint::new(step.x + state.map_pos.x, step.y + state.map_pos.y).into(),
                     );
                 }
             }
@@ -64,10 +64,11 @@ impl Renderer {
 
             self.screen.draw(
                 &astar_start_sprite,
-                ScreenPoint::new(
+                MapPoint::new(
                     state.astar_start.x + state.map_pos.x,
                     state.astar_start.y + state.map_pos.y,
-                ),
+                )
+                .into(),
             );
         }
 
@@ -82,10 +83,11 @@ impl Renderer {
 
             self.screen.draw(
                 &astar_goal_sprite,
-                ScreenPoint::new(
+                MapPoint::new(
                     state.astar_goal.x + state.map_pos.x,
                     state.astar_goal.y + state.map_pos.y,
-                ),
+                )
+                .into(),
             );
         }
     }
@@ -104,15 +106,15 @@ impl Renderer {
             size: ScreenPoint::new(1, 1),
         };
 
-        self.screen.draw(
-            &cursor,
-            ScreenPoint::new(state.cursor_pos.x, state.cursor_pos.y),
-        );
+        self.screen
+            .draw(&cursor, state.cursor_pos.clone().into());
     }
 
     fn draw_debug_info(&mut self, state: &State) {
         let state_info_str = format!(
-            "cols: {}, rows: {}, time: {}",
+            "cols: {}, rows: {}, tiles_x: {}, tiles_y: {}, time: {}",
+            self.screen.size.width(),
+            self.screen.size.height(),
             state.screen_size.width(),
             state.screen_size.height(),
             state.elapsed_time,
@@ -122,8 +124,15 @@ impl Renderer {
             .draw(&state_info, ScreenPoint::new(10, 3));
 
         let pos_info_str = format!(
-            "map_x: {}, map_y: {}, cursor_x: {}, cursor_y: {}",
-            state.map_pos.x, state.map_pos.y, state.cursor_pos.x, state.cursor_pos.y
+            "map_x: {}, map_y: {}, cursor_x: {}, cursor_y: {}, astar_path: {:?}",
+            state.map_pos.x,
+            state.map_pos.y,
+            state.cursor_pos.x,
+            state.cursor_pos.y,
+            state
+                .astar_path
+                .as_ref()
+                .map(|p| p.len()),
         );
         let pos_info = Sprite::from(pos_info_str);
         self.screen
@@ -132,10 +141,10 @@ impl Renderer {
 
     fn draw_floor(&mut self, state: &State) {
         let mut pixels = Vec::new();
-        let width = (state.screen_size.width() / TILE_SIZE.width()) * TILE_SIZE.width();
+        let width = state.screen_size.width();
         let height = state.screen_size.height();
 
-        for _i in 0..((width / TILE_SIZE.width()) * height) {
+        for _i in 0..(width * height) {
             pixels.push(Pixel::from('['));
             pixels.push(Pixel::from('-'));
             pixels.push(Pixel::from(']'));
@@ -143,7 +152,7 @@ impl Renderer {
 
         let sprite = Sprite {
             pixels,
-            size: ScreenPoint::new(width, height),
+            size: state.screen_size.clone().into(),
         };
 
         self.screen
@@ -154,6 +163,6 @@ impl Renderer {
         let sprite = state.get_map_sprite();
 
         self.screen
-            .draw(&sprite, ScreenPoint::new(state.map_pos.x, state.map_pos.y));
+            .draw(&sprite, state.map_pos.clone().into());
     }
 }

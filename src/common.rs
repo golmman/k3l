@@ -57,7 +57,13 @@ impl<W> Point<W> {
 
 impl From<ScreenPoint> for MapPoint {
     fn from(p: ScreenPoint) -> Self {
-        MapPoint::new(p.x / 1, p.y)
+        MapPoint::new(p.x / TILE_SIZE.width(), p.y / TILE_SIZE.height())
+    }
+}
+
+impl From<MapPoint> for ScreenPoint {
+    fn from(p: MapPoint) -> Self {
+        ScreenPoint::new(p.x * TILE_SIZE.width(), p.y * TILE_SIZE.height())
     }
 }
 
