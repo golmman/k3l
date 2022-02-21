@@ -86,7 +86,6 @@ pub fn intersect(r1: &RectAbsolute<i32>, r2: &RectAbsolute<i32>) -> RectAbsolute
 
 #[cfg(test)]
 mod test {
-    use super::*;
 
     #[test]
     fn test_calc_array_bounds() {}

@@ -1,6 +1,5 @@
-use std::fs::read_to_string;
-use std::path::Path;
-
+use self::map::Map;
+use self::map::TilePos;
 use crate::common::MapPoint;
 use crate::common::ScreenPoint;
 use crate::common::TILE_SIZE;
@@ -9,10 +8,6 @@ use crate::screen::Pixel;
 use crate::screen::Sprite;
 use crate::tile_config::BaseTile;
 use crate::tile_config::TileConfig;
-use crate::tile_config::TileId;
-
-use self::map::Map;
-use self::map::TilePos;
 
 mod map;
 

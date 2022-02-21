@@ -1,10 +1,12 @@
-use crate::common::TILE_SIZE;
 use std::fs::read_to_string;
 use std::path::Path;
 
-use crate::common::MapPoint;
-use crate::tile_config::{TileConfig, TileId};
 use rand::random;
+
+use crate::common::MapPoint;
+use crate::common::TILE_SIZE;
+use crate::tile_config::TileConfig;
+use crate::tile_config::TileId;
 
 #[derive(Debug)]
 pub struct TilePos {
