@@ -155,6 +155,8 @@ pub struct State {
     pub astar_goal: MapPoint,
     pub astar_path: Option<Vec<MapPoint>>,
 
+    pub show_debug_info: bool,
+
     pub cursor_pos: MapPoint,
     pub elapsed_time: u64,
     pub map: Map,
@@ -175,6 +177,8 @@ impl State {
             astar_start: MapPoint::new(0, 0),
             astar_goal: MapPoint::new(0, 0),
             astar_path: None,
+
+            show_debug_info: true,
 
             cursor_pos: MapPoint::new(0, 0),
             elapsed_time,
@@ -222,6 +226,10 @@ impl State {
 
     pub fn elapse_time(&mut self) {
         self.elapsed_time += 1;
+    }
+
+    pub fn toggle_debug_info(&mut self) {
+        self.show_debug_info = !self.show_debug_info;
     }
 
     pub fn set_astar_start(&mut self) {

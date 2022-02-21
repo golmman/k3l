@@ -93,6 +93,10 @@ impl Renderer {
     }
 
     fn draw_debug_info(&mut self, state: &State) {
+        if !state.show_debug_info {
+            return;
+        }
+
         let state_info_str = format!(
             "cols: {}, rows: {}, tiles_x: {}, tiles_y: {}, time: {}",
             self.screen.size.width(),

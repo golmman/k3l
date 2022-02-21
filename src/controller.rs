@@ -102,6 +102,8 @@ impl Controller {
                 Key::Char('k') => self.state.move_map_down(),
                 Key::Char('j') => self.state.move_map_up(),
 
+                Key::Char('d') => self.state.toggle_debug_info(),
+
                 Key::Char('s') => self.state.set_astar_start(),
                 Key::Char('g') => self.state.set_astar_goal(),
                 Key::Char('\n') => {
@@ -112,7 +114,6 @@ impl Controller {
                         &self.state.tile_config,
                     );
 
-                    //self.state.astar_path.clear();
                     self.state.astar_path = x;
                 }
                 _ => {}
