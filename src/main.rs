@@ -3,6 +3,7 @@ use crate::controller::Controller;
 mod color;
 mod common;
 mod controller;
+mod npc_config;
 mod renderer;
 mod screen;
 mod state;

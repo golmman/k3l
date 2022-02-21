@@ -6,6 +6,7 @@ use rand::random;
 use crate::common::MapPoint;
 use crate::common::ScreenPoint;
 use crate::common::TILE_SIZE;
+use crate::npc_config::NpcConfig;
 use crate::screen::Pixel;
 use crate::screen::Sprite;
 use crate::tile_config::BaseTile;
@@ -169,6 +170,8 @@ pub struct State {
     pub elapsed_time: u64,
     pub map: Map,
     pub map_pos: MapPoint,
+
+    pub npc_config: NpcConfig,
     pub tile_config: TileConfig,
 
     pub screen_size: MapPoint,
@@ -178,6 +181,7 @@ impl State {
     pub fn new() -> Self {
         let elapsed_time = 0;
         let tile_config = TileConfig::from_file("tile_config.toml");
+        let npc_config = NpcConfig::from_file("npc_config.toml");
         let map = Map::from_file("example_map.toml", &tile_config);
         let map_pos = MapPoint::new(24, 1);
 
@@ -192,6 +196,8 @@ impl State {
             elapsed_time,
             map,
             map_pos,
+
+            npc_config,
             tile_config,
 
             screen_size: MapPoint::new(0, 0),
