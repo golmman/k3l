@@ -123,6 +123,16 @@ impl Renderer {
         let pos_info = Sprite::from(pos_info_str);
         self.screen
             .draw(&pos_info, ScreenPoint::new(10, 4));
+
+        let cursor_map_coordinates = MapPoint::new(
+            state.cursor_pos.x - state.map_pos.x,
+            state.cursor_pos.y - state.map_pos.y,
+        );
+        let base_tile = state.get_base_tile_at(&cursor_map_coordinates);
+        let cursor_over_info_str = format!("{:?}", base_tile.map(|b| b.name.clone()));
+        let cursor_over_info = Sprite::from(cursor_over_info_str);
+        self.screen
+            .draw(&cursor_over_info, ScreenPoint::new(10, 5));
     }
 
     fn draw_floor(&mut self, state: &State) {

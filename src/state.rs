@@ -8,6 +8,7 @@ use crate::common::ScreenPoint;
 use crate::common::TILE_SIZE;
 use crate::screen::Pixel;
 use crate::screen::Sprite;
+use crate::tile_config::BaseTile;
 use crate::tile_config::TileConfig;
 use crate::tile_config::TileId;
 
@@ -63,7 +64,7 @@ pub struct Map {
 }
 
 impl Map {
-    pub fn get_tile_pos(&self, point: MapPoint) -> Option<TilePos> {
+    pub fn get_tile(&self, point: &MapPoint) -> Option<&Tile> {
         if point.x < 0 || point.x >= self.size.width() {
             return None;
         }
@@ -72,18 +73,25 @@ impl Map {
             return None;
         }
 
-        let tile = self.tiles[(self.size.width() * point.y + point.x) as usize].clone();
-        Some(TilePos {
-            tile_id: tile.tile_id,
-            pos: point,
-        })
+        Some(&self.tiles[(self.size.width() * point.y + point.x) as usize])
+    }
+
+    pub fn get_tile_pos(&self, point: &MapPoint) -> Option<TilePos> {
+        if let Some(tile) = self.get_tile(point) {
+            return Some(TilePos {
+                tile_id: tile.tile_id,
+                pos: point.clone(),
+            });
+        }
+
+        None
     }
 
     pub fn get_neighborhood4(&self, point: &MapPoint) -> Neighborhood4 {
-        let left = self.get_tile_pos(point.left());
-        let right = self.get_tile_pos(point.right());
-        let up = self.get_tile_pos(point.up());
-        let down = self.get_tile_pos(point.down());
+        let left = self.get_tile_pos(&point.left());
+        let right = self.get_tile_pos(&point.right());
+        let up = self.get_tile_pos(&point.up());
+        let down = self.get_tile_pos(&point.down());
 
         Neighborhood4 {
             left,
@@ -226,6 +234,13 @@ impl State {
 
     pub fn elapse_time(&mut self) {
         self.elapsed_time += 1;
+    }
+
+    pub fn get_base_tile_at(&self, point: &MapPoint) -> Option<&BaseTile> {
+        if let Some(tile) = self.map.get_tile(point) {
+            return Some(self.tile_config.get(tile.tile_id));
+        }
+        None
     }
 
     pub fn toggle_debug_info(&mut self) {
