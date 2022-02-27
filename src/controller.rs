@@ -122,6 +122,7 @@ impl Controller {
             TerminalEvent::Elapse => self.state.elapse_time(),
         }
 
+        self.state.update_npcs();
         self.renderer.display(&self.state);
 
         true

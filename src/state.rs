@@ -1,5 +1,7 @@
 use self::map::Map;
 use self::map::TilePos;
+use self::npc::Npc;
+use self::task::Task;
 use crate::common::MapPoint;
 use crate::common::ScreenPoint;
 use crate::common::TILE_SIZE;
@@ -10,11 +12,13 @@ use crate::tile_config::BaseTile;
 use crate::tile_config::TileConfig;
 
 mod map;
+mod npc;
+pub mod task;
 
 pub struct State {
     pub astar_start: MapPoint,
     pub astar_goal: MapPoint,
-    pub astar_path: Option<Vec<MapPoint>>,
+    pub astar_path: Vec<MapPoint>,
 
     pub show_debug_info: bool,
 
@@ -23,6 +27,11 @@ pub struct State {
     pub map: Map,
     pub map_pos: MapPoint,
 
+    pub npcs: Vec<Npc>,
+
+    pub worker_tasks: Vec<Box<dyn Task>>,
+
+    // TODO: state should ideally only contain the information needed for a savefile
     pub npc_config: NpcConfig,
     pub tile_config: TileConfig,
 
@@ -36,11 +45,13 @@ impl State {
         let npc_config = NpcConfig::from_file("npc_config.toml");
         let map = Map::from_file("example_map.toml", &tile_config);
         let map_pos = MapPoint::new(24, 1);
+        let npcs = Vec::new();
+        let worker_tasks = Vec::new();
 
         Self {
             astar_start: MapPoint::new(0, 0),
             astar_goal: MapPoint::new(0, 0),
-            astar_path: None,
+            astar_path: Vec::new(),
 
             show_debug_info: true,
 
@@ -48,6 +59,9 @@ impl State {
             elapsed_time,
             map,
             map_pos,
+
+            npcs,
+            worker_tasks,
 
             npc_config,
             tile_config,
@@ -83,6 +97,17 @@ impl State {
         Sprite {
             pixels,
             size: ScreenPoint::new(width, height),
+        }
+    }
+
+    // TODO: is it possible to prevent npc cloning here?
+    pub fn update_npcs(&mut self) {
+        for i in 0..self.npcs.len() {
+            let mut npc_clone = self.npcs[i].clone();
+
+            npc_clone.execute_next_action(self);
+
+            self.npcs[i] = npc_clone;
         }
     }
 
@@ -173,7 +198,7 @@ pub fn get_shortest_path(
     goal: &MapPoint,
     map: &Map,
     tile_config: &TileConfig,
-) -> Option<Vec<MapPoint>> {
+) -> Vec<MapPoint> {
     let path = pathfinding::prelude::astar(
         start,
         |p| successors(p, map, tile_config),
@@ -181,7 +206,7 @@ pub fn get_shortest_path(
         |p| p == goal,
     );
 
-    path.map(|p| p.0)
+    path.map_or(Vec::new(), |p| p.0)
 }
 
 fn successors(point: &MapPoint, map: &Map, tile_config: &TileConfig) -> Vec<(MapPoint, u32)> {

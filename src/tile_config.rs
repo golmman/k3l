@@ -19,7 +19,7 @@ impl From<&str> for TileState {
             "solid" => TileState::Solid,
             "liquid" => TileState::Liquid,
             "gas" => TileState::Gas,
-            _ => panic!(),
+            _ => panic!("TileState '{key}' unkown."),
         }
     }
 }

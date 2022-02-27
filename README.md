@@ -1,3 +1,59 @@
+
+
+## Tasks
+
+state holds queues of tasks, each queue is dequeued if there is an npc of the right kind with no task or one with a lower priority
+
+### Scheduler
+
+assigns tasks
+
+### Example Tasks
+
+#### goto cursor
+* priority middle
+* iterator over list of positions
+* change position step by step
+
+#### mine
+* priority middle
+* go to position
+* play animation for some time
+* modify map accordingly
+
+#### worker idle
+* prio lowest
+* repeat
+    * go to random spot with walk speed
+        * if encountering enemies: alarm and flee
+
+#### patrol idle
+* prio lowest
+* repeat
+    * go to random spot with walk speed
+        * if encountering enemies: alarm
+
+#### alarm
+* priority high
+* try to overwrite task for all soldiers to 'attack at' (if priority allows)
+
+#### attack at
+* priority high
+* go to position
+* repeat
+    * if find enemies in attack range: attack
+    * elseif find enemies in a vision range: go to
+    * else end task
+
+#### flee
+* triggered when hp falls under threshold
+* priority highest
+* repeat
+    * try to increase distance to closest enemies positon
+
+
+
+
 same calc for bg and fg
 
 | `last_color` | `current_color` | set color | update `last_color` |

@@ -3,9 +3,10 @@ use std::fs::read_to_string;
 use std::path::Path;
 
 use crate::color::Color;
+use crate::state::task::TaskKind;
 use crate::tile_config::TileString;
 
-type NpcId = String;
+pub type NpcId = String;
 
 #[derive(Debug)]
 pub struct BaseNpc {
@@ -13,6 +14,8 @@ pub struct BaseNpc {
     pub id: NpcId,
     pub key: String,
     pub name: String,
+    pub task_kind: TaskKind,
+    pub walk_delay: i32,
     pub animation_idle: Vec<TileString>,
     pub animation_walk: Vec<TileString>,
 }
@@ -44,7 +47,6 @@ impl NpcConfig {
             let fg_color = base["fg_color"]
                 .as_integer()
                 .map(|c| c as u8);
-
             let color = Color { bg_color, fg_color };
 
             let id = base["id"]
@@ -56,6 +58,13 @@ impl NpcConfig {
                 .as_str()
                 .map(String::from)
                 .unwrap();
+
+            let walk_delay = base["walk_delay"]
+                .as_integer()
+                .map(|i| i as i32)
+                .unwrap();
+
+            let task_kind = TaskKind::from(base["task_kind"].as_str().unwrap());
 
             let animation = t["animation"].as_table().unwrap();
 
@@ -80,6 +89,8 @@ impl NpcConfig {
                     id,
                     key: key.to_string(),
                     name,
+                    task_kind,
+                    walk_delay,
                     animation_idle,
                     animation_walk,
                 },

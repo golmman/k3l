@@ -1,11 +1,28 @@
-[imp]
+[follower]
+[follower.base]
+id = "follower"
+bg_color = nan
+fg_color = 32
+name = "Follower"
+task_kind = "cursor"
+walk_delay = 3 # frames per tile
+[follower.animation]
+idle = [
+    [
+        ".i.", ".i.", ".i.", ".i.", ".i.", ".i.", ".i.", ".i.",
+        ",i,", ",i,", ",ï,", ",ï,", ",ï,", ",ï,", ".ï.", ".ï.",
+    ],
+]
+walk = [[",i.", ",i.", ",i,", ",i,", ".i,", ".i,"]]
 
+[imp]
 [imp.base]
 id = "imp"
 bg_color = nan
 fg_color = 8
 name = "Imp"
-
+task_kind = "worker"
+walk_delay = 1
 [imp.animation]
 idle = [
     [

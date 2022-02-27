@@ -37,13 +37,11 @@ impl Renderer {
         {
             let astar_path_sprite = Sprite::from_color_text(" * ", Color::new(28, 0));
 
-            if let Some(path) = &state.astar_path {
-                for step in path {
-                    self.screen.draw(
-                        &astar_path_sprite,
-                        MapPoint::new(step.x + state.map_pos.x, step.y + state.map_pos.y).into(),
-                    );
-                }
+            for step in &state.astar_path {
+                self.screen.draw(
+                    &astar_path_sprite,
+                    MapPoint::new(step.x + state.map_pos.x, step.y + state.map_pos.y).into(),
+                );
             }
         }
 
@@ -115,10 +113,7 @@ impl Renderer {
             state.map_pos.y,
             state.cursor_pos.x,
             state.cursor_pos.y,
-            state
-                .astar_path
-                .as_ref()
-                .map(|p| p.len()),
+            state.astar_path.len(),
         );
         let pos_info = Sprite::from(pos_info_str);
         self.screen
