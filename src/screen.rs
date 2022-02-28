@@ -93,6 +93,7 @@ impl DefaultScreen {
         //self.prelude_buffer.push_str("\x1b[H"); // goto to (1, 1)
     }
 
+    // TODO: make p a reference
     pub fn draw(&mut self, sprite: &Sprite, p: ScreenPoint) {
         let screen_rect = RectAbsolute {
             x1: 0,

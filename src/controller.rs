@@ -1,4 +1,5 @@
 use std::io::stdin;
+use std::rc::Rc;
 use std::sync::mpsc::sync_channel;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::SyncSender;
@@ -11,9 +12,12 @@ use termion::input::TermRead;
 
 use crate::common::MapPoint;
 use crate::common::FRAMES_PER_SECOND;
+use crate::npc_config::NpcConfig;
 use crate::renderer::Renderer;
 use crate::state::get_shortest_path;
+use crate::state::task::GotoTask;
 use crate::state::State;
+use crate::tile_config::TileConfig;
 
 pub enum TerminalEvent {
     Key(Key),
@@ -26,19 +30,28 @@ pub struct Controller {
     renderer: Renderer,
     sender: SyncSender<TerminalEvent>,
     state: State,
+
+    npc_config: Rc<NpcConfig>,
+    tile_config: Rc<TileConfig>,
 }
 
 impl Controller {
     pub fn new() -> Self {
         let (sender, receiver) = sync_channel::<TerminalEvent>(1024);
         let renderer = Renderer::new();
-        let state = State::new();
+
+        let tile_config = Rc::new(TileConfig::from_file("tile_config.toml"));
+        let npc_config = Rc::new(NpcConfig::from_file("npc_config.toml"));
+        let state = State::new(Rc::clone(&npc_config), Rc::clone(&tile_config));
 
         Self {
             receiver,
             renderer,
             sender,
             state,
+
+            npc_config,
+            tile_config,
         }
     }
 
@@ -103,6 +116,21 @@ impl Controller {
                 Key::Char('j') => self.state.move_map_up(),
 
                 Key::Char('d') => self.state.toggle_debug_info(),
+
+                Key::Char(' ') => {
+                    let goto_task = GotoTask::new(
+                        MapPoint::new(
+                            self.state.cursor_pos.x - self.state.map_pos.x,
+                            self.state.cursor_pos.y - self.state.map_pos.y,
+                        ),
+                        Rc::clone(&self.state.map),
+                        Rc::clone(&self.state.tile_config),
+                    );
+
+                    self.state
+                        .cursor_tasks
+                        .push(Box::new(goto_task));
+                }
 
                 Key::Char('s') => self.state.set_astar_start(),
                 Key::Char('g') => self.state.set_astar_goal(),

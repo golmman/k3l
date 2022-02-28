@@ -26,8 +26,8 @@ pub struct NpcConfig {
 }
 
 impl NpcConfig {
-    pub fn get(&self, npc_id: NpcId) -> &BaseNpc {
-        self.npcs.get(&npc_id).unwrap()
+    pub fn get(&self, npc_id: &NpcId) -> &BaseNpc {
+        self.npcs.get(npc_id).unwrap()
     }
 
     pub fn from_file<P: AsRef<Path>>(path: P) -> Self {

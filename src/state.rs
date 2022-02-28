@@ -1,6 +1,11 @@
+use std::collections::BinaryHeap;
+use std::collections::VecDeque;
+use std::rc::Rc;
+
 use self::map::Map;
 use self::map::TilePos;
 use self::npc::Npc;
+use self::task::IdleCursorTask;
 use self::task::Task;
 use crate::common::MapPoint;
 use crate::common::ScreenPoint;
@@ -24,28 +29,36 @@ pub struct State {
 
     pub cursor_pos: MapPoint,
     pub elapsed_time: u64,
-    pub map: Map,
+    pub map: Rc<Map>,
     pub map_pos: MapPoint,
 
     pub npcs: Vec<Npc>,
 
+    pub cursor_tasks: Vec<Box<dyn Task>>,
+    pub soldier_tasks: Vec<Box<dyn Task>>,
     pub worker_tasks: Vec<Box<dyn Task>>,
 
     // TODO: state should ideally only contain the information needed for a savefile
-    pub npc_config: NpcConfig,
-    pub tile_config: TileConfig,
+    pub npc_config: Rc<NpcConfig>,
+    pub tile_config: Rc<TileConfig>,
 
     pub screen_size: MapPoint,
 }
 
 impl State {
-    pub fn new() -> Self {
+    pub fn new(npc_config: Rc<NpcConfig>, tile_config: Rc<TileConfig>) -> Self {
         let elapsed_time = 0;
-        let tile_config = TileConfig::from_file("tile_config.toml");
-        let npc_config = NpcConfig::from_file("npc_config.toml");
-        let map = Map::from_file("example_map.toml", &tile_config);
+        let map = Rc::new(Map::from_file("example_map.toml", &tile_config));
         let map_pos = MapPoint::new(24, 1);
-        let npcs = Vec::new();
+
+        let npcs = vec![Npc {
+            npc_id: String::from("follower"),
+            pos: MapPoint::new(10, 10),
+            task: Box::new(IdleCursorTask {}),
+        }];
+
+        let cursor_tasks = Vec::new();
+        let soldier_tasks = Vec::new();
         let worker_tasks = Vec::new();
 
         Self {
@@ -61,6 +74,9 @@ impl State {
             map_pos,
 
             npcs,
+
+            cursor_tasks,
+            soldier_tasks,
             worker_tasks,
 
             npc_config,
@@ -102,12 +118,38 @@ impl State {
 
     // TODO: is it possible to prevent npc cloning here?
     pub fn update_npcs(&mut self) {
+        self.cursor_tasks.as_mut_slice().sort();
+
         for i in 0..self.npcs.len() {
             let mut npc_clone = self.npcs[i].clone();
+
+            match self
+                .npc_config
+                .get(&npc_clone.npc_id)
+                .task_kind
+            {
+                task::TaskKind::Cursor => {
+                    State::assign_appropriate_task(&mut npc_clone, &mut self.cursor_tasks)
+                }
+                task::TaskKind::Soldier => {
+                    State::assign_appropriate_task(&mut npc_clone, &mut self.soldier_tasks)
+                }
+                task::TaskKind::Worker => todo!(),
+            }
 
             npc_clone.execute_next_action(self);
 
             self.npcs[i] = npc_clone;
+        }
+    }
+
+    fn assign_appropriate_task(npc: &mut Npc, tasks: &mut Vec<Box<dyn Task>>) {
+        for i in 0..tasks.len() {
+            if tasks[i].get_priority() > npc.task.get_priority() {
+                let task = tasks.swap_remove(i);
+                npc.assign(task);
+                return;
+            }
         }
     }
 

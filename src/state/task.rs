@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use crate::common::MapPoint;
 use crate::tile_config::TileConfig;
 
@@ -10,6 +12,7 @@ pub trait Action {
 }
 
 pub trait Task: TaskClone + Iterator<Item = Box<dyn Action>> {
+    fn assign(self: Box<Self>, npc: &mut Npc);
     fn get_name(&self) -> String;
     fn get_priority(&self) -> i32;
 }
@@ -32,6 +35,27 @@ where
 impl Clone for Box<dyn Task> {
     fn clone(&self) -> Self {
         self.clone_box()
+    }
+}
+
+impl PartialEq for Box<dyn Task> {
+    fn eq(&self, other: &Self) -> bool {
+        self.get_priority() == other.get_priority()
+    }
+}
+
+impl Eq for Box<dyn Task> {}
+
+impl PartialOrd for Box<dyn Task> {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(&other))
+    }
+}
+
+impl Ord for Box<dyn Task> {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.get_priority()
+            .cmp(&other.get_priority())
     }
 }
 
@@ -59,7 +83,38 @@ impl From<String> for TaskKind {
     }
 }
 
-struct GotoAction {
+pub struct IdleCursorAction {}
+
+impl Action for IdleCursorAction {
+    fn execute(&self, npc: &mut Npc, state: &mut State) {}
+}
+
+#[derive(Clone)]
+pub struct IdleCursorTask {}
+
+impl Task for IdleCursorTask {
+    fn assign(self: Box<Self>, npc: &mut Npc) {
+        npc.task = self;
+    }
+
+    fn get_name(&self) -> String {
+        String::from("IdleCursor")
+    }
+
+    fn get_priority(&self) -> i32 {
+        0
+    }
+}
+
+impl Iterator for IdleCursorTask {
+    type Item = Box<dyn Action>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        Some(Box::new(IdleCursorAction {}))
+    }
+}
+
+pub struct GotoAction {
     next_step: MapPoint,
 }
 
@@ -70,23 +125,36 @@ impl Action for GotoAction {
 }
 
 #[derive(Clone)]
-struct GotoTask {
+pub struct GotoTask {
+    goal: MapPoint,
+    tile_config: Rc<TileConfig>,
+    map: Rc<Map>,
+
     steps: Vec<MapPoint>,
     step_index: usize,
 }
 
 impl GotoTask {
-    pub fn new(start: &MapPoint, goal: &MapPoint, map: &Map, tile_config: &TileConfig) -> Self {
-        let steps = get_shortest_path(start, goal, map, tile_config);
+    pub fn new(goal: MapPoint, map: Rc<Map>, tile_config: Rc<TileConfig>) -> Self {
+        //let steps = get_shortest_path(start, goal, map, tile_config);
 
         Self {
-            steps,
+            goal,
+            tile_config,
+            map,
+            steps: Vec::new(),
             step_index: 0,
         }
     }
 }
 
 impl Task for GotoTask {
+    fn assign(mut self: Box<Self>, npc: &mut Npc) {
+        self.steps = get_shortest_path(&npc.pos.clone(), &self.goal, &self.map, &self.tile_config);
+
+        npc.task = self;
+    }
+
     fn get_name(&self) -> String {
         String::from("Goto")
     }

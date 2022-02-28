@@ -27,10 +27,21 @@ impl Renderer {
         self.draw_floor(state);
         self.draw_map(state);
         self.draw_astar(state);
+        self.draw_npcs(state);
         self.draw_debug_info(state);
         self.draw_cursor(state);
 
         self.screen.display();
+    }
+
+    fn draw_npcs(&mut self, state: &State) {
+        for npc in &state.npcs {
+            let npc_sprite = Sprite::from_color_text(":-D", Color::new(52, 0));
+            self.screen.draw(
+                &npc_sprite,
+                MapPoint::new(npc.pos.x + state.map_pos.x, npc.pos.y + state.map_pos.y).into(),
+            );
+        }
     }
 
     fn draw_astar(&mut self, state: &State) {
