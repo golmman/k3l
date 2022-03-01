@@ -147,10 +147,12 @@ impl Controller {
                 _ => {}
             },
             TerminalEvent::Resize => self.resize(),
-            TerminalEvent::Elapse => self.state.elapse_time(),
+            TerminalEvent::Elapse => {
+                self.state.elapse_time();
+                self.state.update_npcs();
+            }
         }
 
-        self.state.update_npcs();
         self.renderer.display(&self.state);
 
         true
