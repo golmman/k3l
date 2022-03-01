@@ -1,3 +1,4 @@
+use std::fmt::Display;
 use std::rc::Rc;
 
 use crate::common::MapPoint;
@@ -56,6 +57,12 @@ impl Ord for Box<dyn Task> {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         self.get_priority()
             .cmp(&other.get_priority())
+    }
+}
+
+impl Display for Box<dyn Task> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{} {}", self.get_priority(), self.get_name())
     }
 }
 

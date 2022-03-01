@@ -11,6 +11,7 @@ use crate::common::MapPoint;
 use crate::common::ScreenPoint;
 use crate::common::TILE_SIZE;
 use crate::npc_config::NpcConfig;
+use crate::renderer::debug_info::DEBUG_INFO_PAGE_TOTAL;
 use crate::screen::Pixel;
 use crate::screen::Sprite;
 use crate::tile_config::BaseTile;
@@ -25,7 +26,7 @@ pub struct State {
     pub astar_goal: MapPoint,
     pub astar_path: Vec<MapPoint>,
 
-    pub show_debug_info: bool,
+    pub debug_info_page: i32,
 
     pub cursor_pos: MapPoint,
     pub elapsed_time: u64,
@@ -66,7 +67,7 @@ impl State {
             astar_goal: MapPoint::new(0, 0),
             astar_path: Vec::new(),
 
-            show_debug_info: true,
+            debug_info_page: 1,
 
             cursor_pos: MapPoint::new(0, 0),
             elapsed_time,
@@ -168,8 +169,12 @@ impl State {
         None
     }
 
-    pub fn toggle_debug_info(&mut self) {
-        self.show_debug_info = !self.show_debug_info;
+    pub fn debug_info_next_page(&mut self) {
+        self.debug_info_page += 1;
+
+        if self.debug_info_page >= DEBUG_INFO_PAGE_TOTAL + 1 {
+            self.debug_info_page = 0;
+        }
     }
 
     pub fn set_astar_start(&mut self) {

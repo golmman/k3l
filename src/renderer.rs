@@ -6,15 +6,22 @@ use crate::screen::Pixel;
 use crate::screen::Sprite;
 use crate::state::State;
 
+pub mod debug_info;
+
 pub struct Renderer {
     screen: DefaultScreen,
+
+    debug_line_y: i32,
 }
 
 impl Renderer {
     pub fn new() -> Self {
         let screen = DefaultScreen::new();
 
-        Self { screen }
+        Self {
+            screen,
+            debug_line_y: 0,
+        }
     }
 
     pub fn resize(&mut self) -> ScreenPoint {
@@ -99,46 +106,6 @@ impl Renderer {
 
         self.screen
             .draw(&cursor, ScreenPoint::from(state.cursor_pos.clone()).right());
-    }
-
-    fn draw_debug_info(&mut self, state: &State) {
-        if !state.show_debug_info {
-            return;
-        }
-
-        let state_info_str = format!(
-            "cols: {}, rows: {}, tiles_x: {}, tiles_y: {}, time: {}",
-            self.screen.size.width(),
-            self.screen.size.height(),
-            state.screen_size.width(),
-            state.screen_size.height(),
-            state.elapsed_time,
-        );
-        let state_info = Sprite::from(state_info_str);
-        self.screen
-            .draw(&state_info, ScreenPoint::new(10, 3));
-
-        let pos_info_str = format!(
-            "map_x: {}, map_y: {}, cursor_x: {}, cursor_y: {}, astar_path: {:?}",
-            state.map_pos.x,
-            state.map_pos.y,
-            state.cursor_pos.x,
-            state.cursor_pos.y,
-            state.astar_path.len(),
-        );
-        let pos_info = Sprite::from(pos_info_str);
-        self.screen
-            .draw(&pos_info, ScreenPoint::new(10, 4));
-
-        let cursor_map_coordinates = MapPoint::new(
-            state.cursor_pos.x - state.map_pos.x,
-            state.cursor_pos.y - state.map_pos.y,
-        );
-        let base_tile = state.get_base_tile_at(&cursor_map_coordinates);
-        let cursor_over_info_str = format!("{:?}", base_tile.map(|b| b.name.clone()));
-        let cursor_over_info = Sprite::from(cursor_over_info_str);
-        self.screen
-            .draw(&cursor_over_info, ScreenPoint::new(10, 5));
     }
 
     fn draw_floor(&mut self, state: &State) {
