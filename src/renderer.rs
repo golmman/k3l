@@ -4,6 +4,7 @@ use crate::common::ScreenPoint;
 use crate::screen::DefaultScreen;
 use crate::screen::Pixel;
 use crate::screen::Sprite;
+use crate::state::selection::Selection;
 use crate::state::State;
 
 pub mod debug_info;
@@ -35,19 +36,38 @@ impl Renderer {
         self.draw_map(state);
         self.draw_astar(state);
         self.draw_npcs(state);
+        self.draw_selection(state);
         self.draw_debug_info(state);
         self.draw_cursor(state);
 
         self.screen.display();
     }
 
+    fn draw_selection(&mut self, state: &State) {
+        if let Selection {
+            pos: Some(pos),
+            size: None,
+        } = &state.selection
+        {
+            let mut selection = Selection {
+                pos: Some(pos + &state.map_pos),
+                size: Some(&state.cursor_pos - &(pos + &state.map_pos)),
+            };
+
+            selection.normalize();
+
+            self.screen.draw_inversion(
+                selection.pos.unwrap().into(),
+                (&selection.size.unwrap() + &MapPoint::new(1, 1)).into(),
+            );
+        }
+    }
+
     fn draw_npcs(&mut self, state: &State) {
         for npc in &state.npcs {
             let npc_sprite = Sprite::from_color_text(":-D", Color::new(52, 0));
-            self.screen.draw(
-                &npc_sprite,
-                MapPoint::new(npc.pos.x + state.map_pos.x, npc.pos.y + state.map_pos.y).into(),
-            );
+            self.screen
+                .draw(&npc_sprite, (&npc.pos + &state.map_pos).into());
         }
     }
 
@@ -56,10 +76,8 @@ impl Renderer {
             let astar_path_sprite = Sprite::from_color_text(" * ", Color::new(28, 0));
 
             for step in &state.astar_path {
-                self.screen.draw(
-                    &astar_path_sprite,
-                    MapPoint::new(step.x + state.map_pos.x, step.y + state.map_pos.y).into(),
-                );
+                self.screen
+                    .draw(&astar_path_sprite, (step + &state.map_pos).into());
             }
         }
 
@@ -68,11 +86,7 @@ impl Renderer {
 
             self.screen.draw(
                 &astar_start_sprite,
-                MapPoint::new(
-                    state.astar_start.x + state.map_pos.x,
-                    state.astar_start.y + state.map_pos.y,
-                )
-                .into(),
+                (&state.astar_start + &state.map_pos).into(),
             );
         }
 
@@ -81,11 +95,7 @@ impl Renderer {
 
             self.screen.draw(
                 &astar_goal_sprite,
-                MapPoint::new(
-                    state.astar_goal.x + state.map_pos.x,
-                    state.astar_goal.y + state.map_pos.y,
-                )
-                .into(),
+                (&state.astar_goal + &state.map_pos).into(),
             );
         }
     }

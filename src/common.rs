@@ -1,6 +1,8 @@
 use std::cmp::max;
 use std::cmp::min;
 use std::marker::PhantomData;
+use std::ops::Add;
+use std::ops::Sub;
 
 pub const TILE_SIZE: ScreenPoint = ScreenPoint::new(3, 1);
 pub const FRAMES_PER_SECOND: u16 = 8;
@@ -14,7 +16,7 @@ pub struct MapCoordinate;
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct ScreenCoordinate;
 
-#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Point<W> {
     phantom: PhantomData<*const W>,
     pub x: i32,
@@ -52,6 +54,44 @@ impl<W> Point<W> {
 
     pub fn down(&self) -> Self {
         Self::new(self.x, self.y + 1)
+    }
+}
+
+impl<W> std::fmt::Debug for Point<W> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{{ x: {}, y: {} }}", self.x, self.y)
+    }
+}
+
+impl<W> Add for Point<W> {
+    type Output = Point<W>;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        Point::new(self.x + rhs.x, self.y + rhs.y)
+    }
+}
+
+impl<W> Add for &Point<W> {
+    type Output = Point<W>;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        Point::new(self.x + rhs.x, self.y + rhs.y)
+    }
+}
+
+impl<W> Sub for Point<W> {
+    type Output = Point<W>;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        Point::new(self.x - rhs.x, self.y - rhs.y)
+    }
+}
+
+impl<W> Sub for &Point<W> {
+    type Output = Point<W>;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        Point::new(self.x - rhs.x, self.y - rhs.y)
     }
 }
 

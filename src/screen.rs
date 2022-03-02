@@ -93,6 +93,46 @@ impl DefaultScreen {
         //self.prelude_buffer.push_str("\x1b[H"); // goto to (1, 1)
     }
 
+    pub fn draw_inversion(&mut self, pos: ScreenPoint, size: ScreenPoint) {
+        let screen_rect = RectAbsolute {
+            x1: 0,
+            y1: 0,
+            x2: self.size.width(),
+            y2: self.size.height(),
+        };
+
+        let sprite_rect = RectAbsolute {
+            x1: pos.x,
+            y1: pos.y,
+            x2: pos.x + size.width(),
+            y2: pos.y + size.height(),
+        };
+
+        let intersection = intersect(&screen_rect, &sprite_rect);
+
+        for sprite_y in intersection.y1..intersection.y2 {
+            for sprite_x in intersection.x1..intersection.x2 {
+                let screen_i = (self.size.width() * sprite_y + sprite_x) as usize;
+                let sprite_i = (size.width() * (sprite_y - pos.y) + sprite_x - pos.x) as usize;
+
+                let fg_color = self.pixel_buffer[screen_i]
+                    .color
+                    .bg_color;
+
+                let bg_color = self.pixel_buffer[screen_i]
+                    .color
+                    .fg_color;
+
+                let ch = self.pixel_buffer[screen_i].ch;
+
+                self.pixel_buffer[screen_i] = Pixel {
+                    ch,
+                    color: Color { fg_color, bg_color },
+                };
+            }
+        }
+    }
+
     // TODO: make p a reference
     pub fn draw(&mut self, sprite: &Sprite, p: ScreenPoint) {
         let screen_rect = RectAbsolute {

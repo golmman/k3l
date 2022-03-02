@@ -132,9 +132,11 @@ impl Controller {
                         .push(Box::new(goto_task));
                 }
 
+                Key::Char('\n') => self.state.toggle_selection(),
+
                 Key::Char('s') => self.state.set_astar_start(),
                 Key::Char('g') => self.state.set_astar_goal(),
-                Key::Char('\n') => {
+                Key::Char('*') => {
                     let x = get_shortest_path(
                         &self.state.astar_start,
                         &self.state.astar_goal,

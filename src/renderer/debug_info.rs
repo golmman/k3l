@@ -54,12 +54,17 @@ impl Renderer {
             state.astar_path.len(),
         ));
 
+        self.draw_next_line(format!("{:?}", state.selection));
+
         let cursor_map_coordinates = MapPoint::new(
             state.cursor_pos.x - state.map_pos.x,
             state.cursor_pos.y - state.map_pos.y,
         );
         let base_tile = state.get_base_tile_at(&cursor_map_coordinates);
-        self.draw_next_line(format!("tile_name: {:?}", base_tile.map(|b| b.name.clone())));
+        self.draw_next_line(format!(
+            "tile_name: {:?}",
+            base_tile.map(|b| b.name.clone())
+        ));
     }
 
     fn draw_debug_info_tasks(&mut self, state: &State) {

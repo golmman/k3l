@@ -5,6 +5,7 @@ use std::rc::Rc;
 use self::map::Map;
 use self::map::TilePos;
 use self::npc::Npc;
+use self::selection::Selection;
 use self::task::IdleCursorTask;
 use self::task::Task;
 use crate::common::MapPoint;
@@ -19,12 +20,15 @@ use crate::tile_config::TileConfig;
 
 mod map;
 mod npc;
+pub mod selection;
 pub mod task;
 
 pub struct State {
     pub astar_start: MapPoint,
     pub astar_goal: MapPoint,
     pub astar_path: Vec<MapPoint>,
+
+    pub selection: Selection,
 
     pub debug_info_page: i32,
 
@@ -66,6 +70,8 @@ impl State {
             astar_start: MapPoint::new(0, 0),
             astar_goal: MapPoint::new(0, 0),
             astar_path: Vec::new(),
+
+            selection: Selection::new(),
 
             debug_info_page: 1,
 
@@ -236,6 +242,23 @@ impl State {
         if self.cursor_pos.y >= self.screen_size.height() - 1 {
             self.cursor_pos.y = self.screen_size.height() - 1;
             self.move_map_up();
+        }
+    }
+
+    pub fn toggle_selection(&mut self) {
+        if self.selection.pos.is_none() && self.selection.size.is_none() {
+            self.selection.pos = Some(&self.cursor_pos - &self.map_pos);
+        } else if self.selection.pos.is_some() && self.selection.size.is_some() {
+            self.selection.pos = Some(&self.cursor_pos - &self.map_pos);
+            self.selection.size = None;
+        } else if self.selection.pos.is_some() && self.selection.size.is_none() {
+            let pos = self.selection.pos.as_ref().unwrap();
+            self.selection.size = Some(&(&self.cursor_pos - pos) - &self.map_pos);
+            self.selection.normalize();
+            self.selection.size =
+                Some(self.selection.size.as_ref().unwrap() + &MapPoint::new(1, 1));
+        } else {
+            panic!("State selection pos was none but size was some, this should not be possible.");
         }
     }
 }
