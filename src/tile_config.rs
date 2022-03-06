@@ -66,6 +66,7 @@ pub struct BaseTile {
     pub floor_state: TileState,
     pub id: TileId,
     pub key: String,
+    pub minable: bool,
     pub name: String,
     pub tile_strings: Vec<TileString>,
 }
@@ -99,6 +100,11 @@ impl TileConfig {
 
             let key = key.to_string();
             let color = Color::new(bg_color, fg_color);
+            let minable = t
+                .get("minable")
+                .map(|v| v.as_bool())
+                .flatten()
+                .unwrap_or(false);
             let name = t["name"].as_str().unwrap().to_string();
             let floor_state = TileState::from(t["floor_state"].as_str().unwrap());
             let block_state = TileState::from(t["block_state"].as_str().unwrap());
@@ -123,6 +129,7 @@ impl TileConfig {
                     floor_state,
                     id,
                     key,
+                    minable,
                     name,
                     tile_strings,
                 },

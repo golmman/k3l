@@ -1,5 +1,4 @@
-use std::collections::BinaryHeap;
-use std::collections::VecDeque;
+use std::collections::HashSet;
 use std::rc::Rc;
 
 use self::map::Map;
@@ -29,6 +28,7 @@ pub struct State {
     pub astar_path: Vec<MapPoint>,
 
     pub selection: Selection,
+    pub dig_selection: HashSet<MapPoint>,
 
     pub debug_info_page: i32,
 
@@ -72,6 +72,7 @@ impl State {
             astar_path: Vec::new(),
 
             selection: Selection::new(),
+            dig_selection: HashSet::new(),
 
             debug_info_page: 1,
 
@@ -257,8 +258,32 @@ impl State {
             self.selection.normalize();
             self.selection.size =
                 Some(self.selection.size.as_ref().unwrap() + &MapPoint::new(1, 1));
+
+            self.set_dig_selection();
         } else {
             panic!("State selection pos was none but size was some, this should not be possible.");
+        }
+    }
+
+    fn set_dig_selection(&mut self) {
+        if let Selection {
+            pos: Some(pos),
+            size: Some(size),
+        } = &self.selection
+        {
+            for y in pos.y..(pos.y + size.y) {
+                for x in pos.x..(pos.x + size.x) {
+                    let base_tile = self.get_base_tile_at(&MapPoint::new(x, y));
+                    let minable = base_tile
+                        .map(|b| b.minable)
+                        .unwrap_or(false);
+
+                    if minable {
+                        self.dig_selection
+                            .insert(MapPoint::new(x, y));
+                    }
+                }
+            }
         }
     }
 }

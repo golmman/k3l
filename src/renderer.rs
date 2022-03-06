@@ -36,11 +36,22 @@ impl Renderer {
         self.draw_map(state);
         self.draw_astar(state);
         self.draw_npcs(state);
+        self.draw_dig_selection(state);
         self.draw_selection(state);
         self.draw_debug_info(state);
         self.draw_cursor(state);
 
         self.screen.display();
+    }
+
+    fn draw_dig_selection(&mut self, state: &State) {
+        for dig_point in &state.dig_selection {
+            self.screen.draw_color(
+                (dig_point + &state.map_pos).into(),
+                MapPoint::new(1, 1).into(),
+                Color::new(32, 1),
+            );
+        }
     }
 
     fn draw_selection(&mut self, state: &State) {

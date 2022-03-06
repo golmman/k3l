@@ -12,6 +12,7 @@ id = "[:]"
 bg_color = 0
 fg_color = 8
 name = "Dirt Wall"
+minable = true
 floor_state = "solid"
 block_state = "solid"
 tile_strings = [[", '"]]

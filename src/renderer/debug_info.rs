@@ -62,8 +62,9 @@ impl Renderer {
         );
         let base_tile = state.get_base_tile_at(&cursor_map_coordinates);
         self.draw_next_line(format!(
-            "tile_name: {:?}",
-            base_tile.map(|b| b.name.clone())
+            "tile_name: {:?}, minable: {:?}",
+            base_tile.map(|b| b.name.clone()),
+            base_tile.map(|b| b.minable),
         ));
     }
 
