@@ -14,7 +14,7 @@ use crate::common::MapPoint;
 use crate::common::FRAMES_PER_SECOND;
 use crate::renderer::Renderer;
 use crate::state::get_shortest_path;
-use crate::state::task::GotoTask;
+use crate::state::task::goto::GotoTask;
 use crate::state::State;
 
 pub enum TerminalEvent {

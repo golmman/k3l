@@ -5,7 +5,7 @@ use self::map::Map;
 use self::map::TilePos;
 use self::npc::Npc;
 use self::selection::Selection;
-use self::task::IdleCursorTask;
+use self::task::idle::IdleCursorTask;
 use self::task::Task;
 use crate::common::MapPoint;
 use crate::common::ScreenPoint;

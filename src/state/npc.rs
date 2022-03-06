@@ -1,4 +1,4 @@
-use super::task::IdleCursorTask;
+use super::task::idle::IdleCursorTask;
 use super::task::Task;
 use super::State;
 use crate::common::MapPoint;
