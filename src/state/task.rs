@@ -1,12 +1,12 @@
 use std::fmt::Display;
 use std::rc::Rc;
 
-use crate::common::MapPoint;
-use crate::tile_config::TileConfig;
-
+use super::get_shortest_path;
 use super::map::Map;
 use super::npc::Npc;
-use super::{get_shortest_path, State};
+use super::State;
+use crate::common::MapPoint;
+use crate::tile_config::TileConfig;
 
 pub trait Action {
     fn execute(&self, npc: &mut Npc, state: &mut State);
@@ -49,7 +49,7 @@ impl Eq for Box<dyn Task> {}
 
 impl PartialOrd for Box<dyn Task> {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        Some(self.cmp(&other))
+        Some(self.cmp(other))
     }
 }
 
@@ -93,7 +93,7 @@ impl From<String> for TaskKind {
 pub struct IdleCursorAction {}
 
 impl Action for IdleCursorAction {
-    fn execute(&self, npc: &mut Npc, state: &mut State) {}
+    fn execute(&self, _npc: &mut Npc, _state: &mut State) {}
 }
 
 #[derive(Clone)]
@@ -126,7 +126,7 @@ pub struct GotoAction {
 }
 
 impl Action for GotoAction {
-    fn execute(&self, npc: &mut Npc, state: &mut State) {
+    fn execute(&self, npc: &mut Npc, _state: &mut State) {
         npc.pos = self.next_step.clone();
     }
 }

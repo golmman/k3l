@@ -1,15 +1,15 @@
-use crate::common::{MapPoint, ScreenPoint};
+use super::Renderer;
+use crate::common::MapPoint;
+use crate::common::ScreenPoint;
 use crate::screen::Sprite;
 use crate::state::State;
-
-use super::Renderer;
 
 pub const DEBUG_INFO_PAGE_TOTAL: i32 = 2;
 
 impl Renderer {
     pub fn draw_debug_info(&mut self, state: &State) {
         match state.debug_info_page {
-            0 => return,
+            0 => (),
             1 => self.draw_debug_info_general(state),
             2 => self.draw_debug_info_tasks(state),
             _ => panic!("debug info page {} out of bounds", state.debug_info_page),

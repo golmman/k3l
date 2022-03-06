@@ -7,6 +7,7 @@ pub struct Selection {
 }
 
 impl Selection {
+    #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         Self {
             pos: None,

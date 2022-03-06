@@ -102,8 +102,7 @@ impl TileConfig {
             let color = Color::new(bg_color, fg_color);
             let minable = t
                 .get("minable")
-                .map(|v| v.as_bool())
-                .flatten()
+                .and_then(|v| v.as_bool())
                 .unwrap_or(false);
             let name = t["name"].as_str().unwrap().to_string();
             let floor_state = TileState::from(t["floor_state"].as_str().unwrap());

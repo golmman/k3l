@@ -51,7 +51,10 @@ pub struct State {
 }
 
 impl State {
-    pub fn new(npc_config: Rc<NpcConfig>, tile_config: Rc<TileConfig>) -> Self {
+    #[allow(clippy::new_without_default)]
+    pub fn new() -> Self {
+        let tile_config = Rc::new(TileConfig::from_file("tile_config.toml"));
+        let npc_config = Rc::new(NpcConfig::from_file("npc_config.toml"));
         let elapsed_time = 0;
         let map = Rc::new(Map::from_file("example_map.toml", &tile_config));
         let map_pos = MapPoint::new(24, 1);
@@ -179,7 +182,7 @@ impl State {
     pub fn debug_info_next_page(&mut self) {
         self.debug_info_page += 1;
 
-        if self.debug_info_page >= DEBUG_INFO_PAGE_TOTAL + 1 {
+        if self.debug_info_page > DEBUG_INFO_PAGE_TOTAL {
             self.debug_info_page = 0;
         }
     }

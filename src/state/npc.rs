@@ -1,8 +1,8 @@
-use crate::common::MapPoint;
-use crate::npc_config::{BaseNpc, NpcConfig, NpcId};
-
-use super::task::{IdleCursorTask, Task};
+use super::task::IdleCursorTask;
+use super::task::Task;
 use super::State;
+use crate::common::MapPoint;
+use crate::npc_config::NpcId;
 
 #[derive(Clone)]
 pub struct Npc {

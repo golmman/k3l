@@ -12,12 +12,10 @@ use termion::input::TermRead;
 
 use crate::common::MapPoint;
 use crate::common::FRAMES_PER_SECOND;
-use crate::npc_config::NpcConfig;
 use crate::renderer::Renderer;
 use crate::state::get_shortest_path;
 use crate::state::task::GotoTask;
 use crate::state::State;
-use crate::tile_config::TileConfig;
 
 pub enum TerminalEvent {
     Key(Key),
@@ -30,9 +28,6 @@ pub struct Controller {
     renderer: Renderer,
     sender: SyncSender<TerminalEvent>,
     state: State,
-
-    npc_config: Rc<NpcConfig>,
-    tile_config: Rc<TileConfig>,
 }
 
 impl Controller {
@@ -40,18 +35,13 @@ impl Controller {
         let (sender, receiver) = sync_channel::<TerminalEvent>(1024);
         let renderer = Renderer::new();
 
-        let tile_config = Rc::new(TileConfig::from_file("tile_config.toml"));
-        let npc_config = Rc::new(NpcConfig::from_file("npc_config.toml"));
-        let state = State::new(Rc::clone(&npc_config), Rc::clone(&tile_config));
+        let state = State::new();
 
         Self {
             receiver,
             renderer,
             sender,
             state,
-
-            npc_config,
-            tile_config,
         }
     }
 
