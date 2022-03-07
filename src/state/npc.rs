@@ -11,6 +11,30 @@ pub struct Npc {
     pub task: Box<dyn Task>,
 }
 
+#[derive(Debug)]
+pub enum NpcClass {
+    Debug,
+    Soldier,
+    Worker,
+}
+
+impl From<&str> for NpcClass {
+    fn from(kind: &str) -> Self {
+        match kind {
+            "debug" => NpcClass::Debug,
+            "soldier" => NpcClass::Soldier,
+            "worker" => NpcClass::Worker,
+            _ => panic!("TaskKind '{kind}' unknown."),
+        }
+    }
+}
+
+impl From<String> for NpcClass {
+    fn from(kind: String) -> Self {
+        NpcClass::from(kind.as_str())
+    }
+}
+
 impl Npc {
     pub fn execute_next_action(&mut self, state: &mut State) {
         if let Some(action) = self.task.next() {
@@ -21,11 +45,11 @@ impl Npc {
         match state
             .npc_config
             .get(&self.npc_id)
-            .task_kind
+            .npc_class
         {
-            super::task::TaskKind::Cursor => self.set_idle_cursor_task(),
-            super::task::TaskKind::Soldier => todo!(),
-            super::task::TaskKind::Worker => todo!(),
+            NpcClass::Debug => self.set_idle_cursor_task(),
+            NpcClass::Soldier => todo!(),
+            NpcClass::Worker => todo!(),
         }
     }
 

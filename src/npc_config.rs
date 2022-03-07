@@ -3,7 +3,7 @@ use std::fs::read_to_string;
 use std::path::Path;
 
 use crate::color::Color;
-use crate::state::task::TaskKind;
+use crate::state::npc::NpcClass;
 use crate::tile_config::TileString;
 
 pub type NpcId = String;
@@ -14,7 +14,7 @@ pub struct BaseNpc {
     pub id: NpcId,
     pub key: String,
     pub name: String,
-    pub task_kind: TaskKind,
+    pub npc_class: NpcClass,
     pub walk_delay: i32,
     pub animation_idle: Vec<TileString>,
     pub animation_walk: Vec<TileString>,
@@ -64,7 +64,7 @@ impl NpcConfig {
                 .map(|i| i as i32)
                 .unwrap();
 
-            let task_kind = TaskKind::from(base["task_kind"].as_str().unwrap());
+            let npc_class = NpcClass::from(base["npc_class"].as_str().unwrap());
 
             let animation = t["animation"].as_table().unwrap();
 
@@ -89,7 +89,7 @@ impl NpcConfig {
                     id,
                     key: key.to_string(),
                     name,
-                    task_kind,
+                    npc_class,
                     walk_delay,
                     animation_idle,
                     animation_walk,

@@ -22,13 +22,6 @@ pub trait TaskClone {
     fn clone_box(&self) -> Box<dyn Task>;
 }
 
-#[derive(Debug)]
-pub enum TaskKind {
-    Cursor,
-    Soldier,
-    Worker,
-}
-
 impl<T> TaskClone for T
 where
     T: 'static + Task + Clone,
@@ -68,22 +61,5 @@ impl Ord for Box<dyn Task> {
 impl Display for Box<dyn Task> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{} {}", self.get_priority(), self.get_name())
-    }
-}
-
-impl From<&str> for TaskKind {
-    fn from(kind: &str) -> Self {
-        match kind {
-            "cursor" => TaskKind::Cursor,
-            "soldier" => TaskKind::Soldier,
-            "worker" => TaskKind::Worker,
-            _ => panic!("TaskKind '{kind}' unknown."),
-        }
-    }
-}
-
-impl From<String> for TaskKind {
-    fn from(kind: String) -> Self {
-        TaskKind::from(kind.as_str())
     }
 }

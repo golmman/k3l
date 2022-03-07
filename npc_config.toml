@@ -4,7 +4,7 @@ id = "follower"
 bg_color = nan
 fg_color = 32
 name = "Follower"
-task_kind = "cursor"
+npc_class = "debug"
 walk_delay = 3 # frames per tile
 [follower.animation]
 idle = [
@@ -21,7 +21,7 @@ id = "imp"
 bg_color = nan
 fg_color = 8
 name = "Imp"
-task_kind = "worker"
+npc_class = "worker"
 walk_delay = 1
 [imp.animation]
 idle = [

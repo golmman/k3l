@@ -4,6 +4,7 @@ use std::rc::Rc;
 use self::map::Map;
 use self::map::TilePos;
 use self::npc::Npc;
+use self::npc::NpcClass;
 use self::selection::Selection;
 use self::task::idle::IdleCursorTask;
 use self::task::Task;
@@ -18,7 +19,7 @@ use crate::tile_config::BaseTile;
 use crate::tile_config::TileConfig;
 
 mod map;
-mod npc;
+pub mod npc;
 pub mod selection;
 pub mod task;
 
@@ -137,15 +138,15 @@ impl State {
             match self
                 .npc_config
                 .get(&npc_clone.npc_id)
-                .task_kind
+                .npc_class
             {
-                task::TaskKind::Cursor => {
+                NpcClass::Debug => {
                     State::assign_appropriate_task(&mut npc_clone, &mut self.cursor_tasks)
                 }
-                task::TaskKind::Soldier => {
+                NpcClass::Soldier => {
                     State::assign_appropriate_task(&mut npc_clone, &mut self.soldier_tasks)
                 }
-                task::TaskKind::Worker => todo!(),
+                NpcClass::Worker => todo!(),
             }
 
             npc_clone.execute_next_action(self);
