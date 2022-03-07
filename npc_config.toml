@@ -5,7 +5,9 @@ bg_color = nan
 fg_color = 32
 name = "Follower"
 npc_class = "debug"
-walk_delay = 3 # frames per tile
+walk_delay = 1 # frames per tile
+run_delay = 0
+attack_delay = 3
 [follower.animation]
 idle = [
     [
@@ -22,7 +24,9 @@ bg_color = nan
 fg_color = 8
 name = "Imp"
 npc_class = "worker"
-walk_delay = 1
+walk_delay = 2
+run_delay = 0
+attack_delay = 3
 [imp.animation]
 idle = [
     [

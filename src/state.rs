@@ -18,6 +18,7 @@ use crate::screen::Sprite;
 use crate::tile_config::BaseTile;
 use crate::tile_config::TileConfig;
 
+mod flood_fill;
 mod map;
 pub mod npc;
 pub mod selection;
@@ -174,10 +175,21 @@ impl State {
     }
 
     pub fn get_base_tile_at(&self, point: &MapPoint) -> Option<&BaseTile> {
-        if let Some(tile) = self.map.get_tile(point) {
-            return Some(self.tile_config.get(tile.tile_id));
-        }
-        None
+        self.map
+            .get_tile(point)
+            .map(|t| self.tile_config.get(t.tile_id))
+    }
+
+    pub fn is_tile_minable(&self, point: &MapPoint) -> bool {
+        self.get_base_tile_at(point)
+            .map(|t| t.minable)
+            .unwrap_or(false)
+    }
+
+    pub fn is_tile_traversable(&self, point: &MapPoint) -> bool {
+        self.get_base_tile_at(point)
+            .map(|t| t.is_traversable())
+            .unwrap_or(false)
     }
 
     pub fn debug_info_next_page(&mut self) {
@@ -277,12 +289,7 @@ impl State {
         {
             for y in pos.y..(pos.y + size.y) {
                 for x in pos.x..(pos.x + size.x) {
-                    let base_tile = self.get_base_tile_at(&MapPoint::new(x, y));
-                    let minable = base_tile
-                        .map(|b| b.minable)
-                        .unwrap_or(false);
-
-                    if minable {
+                    if self.is_tile_minable(&MapPoint::new(x, y)) {
                         self.dig_selection
                             .insert(MapPoint::new(x, y));
                     }

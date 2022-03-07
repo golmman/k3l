@@ -54,6 +54,12 @@ impl Renderer {
             state.astar_path.len(),
         ));
 
+        self.draw_next_line(format!(
+            "cursor_map_x: {}, cursor_map_y: {}",
+            state.cursor_pos.x - state.map_pos.x,
+            state.cursor_pos.y - state.map_pos.y,
+        ));
+
         self.draw_next_line(format!("{:?}", state.selection));
 
         let cursor_map_coordinates = MapPoint::new(
