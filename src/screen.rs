@@ -198,6 +198,7 @@ impl DefaultScreen {
 
             let mut last_color = Color::none();
 
+            // TODO: background color is not properly set, when e.g. transparent npc is next to another color
             for x in 0..self.size.width() {
                 let i = (self.size.width() * y + x) as usize;
                 let ch = self.pixel_buffer[i].ch;

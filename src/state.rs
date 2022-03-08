@@ -4,6 +4,7 @@ use std::rc::Rc;
 use self::map::Map;
 use self::map::TilePos;
 use self::npc::Npc;
+use self::npc::NpcAnimationId;
 use self::npc::NpcClass;
 use self::selection::Selection;
 use self::task::idle::IdleCursorTask;
@@ -11,8 +12,9 @@ use self::task::Task;
 use crate::common::MapPoint;
 use crate::common::ScreenPoint;
 use crate::common::TILE_SIZE;
+use crate::npc_config::BaseNpc;
 use crate::npc_config::NpcConfig;
-use crate::renderer::debug_info::DEBUG_INFO_PAGE_TOTAL;
+use crate::renderer::draw_debug_info::DEBUG_INFO_PAGE_TOTAL;
 use crate::screen::Pixel;
 use crate::screen::Sprite;
 use crate::tile_config::BaseTile;
@@ -61,11 +63,26 @@ impl State {
         let map = Rc::new(Map::from_file("example_map.toml", &tile_config));
         let map_pos = MapPoint::new(24, 1);
 
-        let npcs = vec![Npc {
-            npc_id: String::from("follower"),
-            pos: MapPoint::new(10, 10),
-            task: Box::new(IdleCursorTask {}),
-        }];
+        let npcs = vec![
+            Npc {
+                animation: NpcAnimationId::Idle,
+                npc_id: String::from("follower"),
+                pos: MapPoint::new(12, 10),
+                task: Box::new(IdleCursorTask {}),
+            },
+            Npc {
+                animation: NpcAnimationId::Idle,
+                npc_id: String::from("follower"),
+                pos: MapPoint::new(10, 10),
+                task: Box::new(IdleCursorTask {}),
+            },
+            Npc {
+                animation: NpcAnimationId::Idle,
+                npc_id: String::from("imp"),
+                pos: MapPoint::new(19, 11),
+                task: Box::new(IdleCursorTask {}),
+            },
+        ];
 
         let cursor_tasks = Vec::new();
         let soldier_tasks = Vec::new();
@@ -99,6 +116,7 @@ impl State {
         }
     }
 
+    // TODO: shouldn't this be done in the renderer?
     pub fn get_map_sprite(&self) -> Sprite {
         let mut pixels = Vec::new();
         let width = TILE_SIZE.width() * self.map.size.width();
@@ -147,7 +165,9 @@ impl State {
                 NpcClass::Soldier => {
                     State::assign_appropriate_task(&mut npc_clone, &mut self.soldier_tasks)
                 }
-                NpcClass::Worker => todo!(),
+                NpcClass::Worker => {
+                    State::assign_appropriate_task(&mut npc_clone, &mut self.worker_tasks)
+                }
             }
 
             npc_clone.execute_next_action(self);
@@ -172,6 +192,10 @@ impl State {
 
     pub fn elapse_time(&mut self) {
         self.elapsed_time += 1;
+    }
+
+    pub fn get_base_npc(&self, npc: &Npc) -> &BaseNpc {
+        self.npc_config.get(&npc.npc_id)
     }
 
     pub fn get_base_tile_at(&self, point: &MapPoint) -> Option<&BaseTile> {

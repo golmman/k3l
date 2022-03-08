@@ -6,9 +6,18 @@ use crate::npc_config::NpcId;
 
 #[derive(Clone)]
 pub struct Npc {
+    pub animation: NpcAnimationId,
     pub npc_id: NpcId,
     pub pos: MapPoint,
     pub task: Box<dyn Task>,
+}
+
+#[derive(Clone)]
+pub enum NpcAnimationId {
+    Idle,
+    Walk,
+    Run,
+    Attack,
 }
 
 #[derive(Debug)]

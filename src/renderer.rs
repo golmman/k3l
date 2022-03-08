@@ -7,7 +7,8 @@ use crate::screen::Sprite;
 use crate::state::selection::Selection;
 use crate::state::State;
 
-pub mod debug_info;
+pub mod draw_debug_info;
+pub mod draw_npcs;
 
 pub struct Renderer {
     screen: DefaultScreen,
@@ -71,14 +72,6 @@ impl Renderer {
                 selection.pos.unwrap().into(),
                 (&selection.size.unwrap() + &MapPoint::new(1, 1)).into(),
             );
-        }
-    }
-
-    fn draw_npcs(&mut self, state: &State) {
-        for npc in &state.npcs {
-            let npc_sprite = Sprite::from_color_text(":-D", Color::new(52, 0));
-            self.screen
-                .draw(&npc_sprite, (&npc.pos + &state.map_pos).into());
         }
     }
 

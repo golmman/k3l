@@ -30,6 +30,8 @@ impl From<String> for TileState {
     }
 }
 
+// TODO: Naming? Used for Npcs as well, so maybe Animation?
+// so the vec of Animation is simply 'animations'
 #[derive(Clone, Debug)]
 pub struct TileString {
     pub frames: Vec<String>,

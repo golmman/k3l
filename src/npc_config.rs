@@ -7,6 +7,7 @@ use crate::state::npc::NpcClass;
 use crate::tile_config::TileString;
 
 pub type NpcId = String;
+pub type NpcAnimationFrames = Vec<TileString>;
 
 #[derive(Debug)]
 pub struct BaseNpc {
@@ -16,8 +17,8 @@ pub struct BaseNpc {
     pub name: String,
     pub npc_class: NpcClass,
     pub walk_delay: i32,
-    pub animation_idle: Vec<TileString>,
-    pub animation_walk: Vec<TileString>,
+    pub animation_idle: NpcAnimationFrames,
+    pub animation_walk: NpcAnimationFrames,
 }
 
 #[derive(Debug)]
