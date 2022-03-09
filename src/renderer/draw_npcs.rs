@@ -28,7 +28,7 @@ impl Renderer {
     }
 
     fn get_animation_frame<'a>(state: &'a State, animations: &'a NpcAnimationFrames) -> &'a str {
-        let animation = &animations[0].frames;
+        let animation = &animations[0].sprites;
         let frame = (state.elapsed_time % animation.len() as u64) as usize;
 
         &animation[frame]

@@ -5,7 +5,7 @@ fg_color = 8
 name = "Bedrock"
 floor_state = "solid"
 block_state = "solid"
-tile_strings = [["###"]]
+animations = [["###"]]
 
 [dirt_wall]
 id = "[:]"
@@ -15,7 +15,7 @@ name = "Dirt Wall"
 minable = true
 floor_state = "solid"
 block_state = "solid"
-tile_strings = [[", '"]]
+animations = [[", '"]]
 
 [dirt_floor]
 id = "[_]"
@@ -24,7 +24,7 @@ fg_color = 7
 name = "Dirt Floor"
 floor_state = "solid"
 block_state = "gas"
-tile_strings = [
+animations = [
     [
         "   ", "   ", "   ", "   ", "   ", "   ", "   ", "   ",
         "   ", "   ", "   ", "   ", "   ", "   ", "   ", "   ",
@@ -51,7 +51,7 @@ fg_color = 0
 name = "Lava Floor"
 floor_state = "liquid"
 block_state = "gas"
-tile_strings = [
+animations = [
     #[":-O", "   ", "   ", "   ", "   ", "   ", "   ", "   "],
     #[":-)", ":-)", ":-)", ":-)", ":-D", ":-D", ":-D", ":-D"],
     #[".  ", " '."],

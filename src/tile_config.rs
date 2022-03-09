@@ -3,6 +3,7 @@ use std::fs::read_to_string;
 use std::path::Path;
 
 use crate::color::Color;
+use crate::screen::Animation;
 
 pub type TileId = [char; 3];
 
@@ -30,37 +31,6 @@ impl From<String> for TileState {
     }
 }
 
-// TODO: Naming? Used for Npcs as well, so maybe Animation?
-// so the vec of Animation is simply 'animations'
-#[derive(Clone, Debug)]
-pub struct TileString {
-    pub frames: Vec<String>,
-}
-
-impl From<Vec<&str>> for TileString {
-    fn from(f: Vec<&str>) -> Self {
-        let frames = f
-            .into_iter()
-            .map(String::from)
-            .collect();
-
-        Self { frames }
-    }
-}
-
-impl From<&toml::Value> for TileString {
-    fn from(value: &toml::Value) -> Self {
-        let str_vec: Vec<&str> = value
-            .as_array()
-            .unwrap()
-            .iter()
-            .map(|x| x.as_str().unwrap())
-            .collect();
-
-        TileString::from(str_vec)
-    }
-}
-
 #[derive(Clone, Debug)]
 pub struct BaseTile {
     pub block_state: TileState,
@@ -70,7 +40,7 @@ pub struct BaseTile {
     pub key: String,
     pub minable: bool,
     pub name: String,
-    pub tile_strings: Vec<TileString>,
+    pub animations: Vec<Animation>,
 }
 
 impl BaseTile {
@@ -115,11 +85,11 @@ impl TileConfig {
                 id_chars.next().unwrap(),
                 id_chars.next().unwrap(),
             ];
-            let tile_strings = t["tile_strings"]
+            let animations = t["animations"]
                 .as_array()
                 .unwrap()
                 .iter()
-                .map(TileString::from)
+                .map(Animation::from)
                 .collect();
 
             tiles.insert(
@@ -132,7 +102,7 @@ impl TileConfig {
                     key,
                     minable,
                     name,
-                    tile_strings,
+                    animations,
                 },
             );
         }

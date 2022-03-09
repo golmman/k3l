@@ -3,11 +3,12 @@ use std::fs::read_to_string;
 use std::path::Path;
 
 use crate::color::Color;
+use crate::screen::Animation;
 use crate::state::npc::NpcClass;
-use crate::tile_config::TileString;
 
 pub type NpcId = String;
-pub type NpcAnimationFrames = Vec<TileString>;
+// TODO: rename
+pub type NpcAnimationFrames = Vec<Animation>;
 
 #[derive(Debug)]
 pub struct BaseNpc {
@@ -73,14 +74,14 @@ impl NpcConfig {
                 .as_array()
                 .unwrap()
                 .iter()
-                .map(TileString::from)
+                .map(Animation::from)
                 .collect();
 
             let animation_walk = animation["walk"]
                 .as_array()
                 .unwrap()
                 .iter()
-                .map(TileString::from)
+                .map(Animation::from)
                 .collect();
 
             npcs.insert(

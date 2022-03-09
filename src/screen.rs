@@ -61,6 +61,38 @@ impl From<String> for Sprite {
     }
 }
 
+// TODO: Naming? Used for Npcs as well, so maybe Animation?
+// so the vec of Animation is simply 'animations'
+// also it should be a vec of Sprites!
+#[derive(Clone, Debug)]
+pub struct Animation {
+    pub sprites: Vec<String>,
+}
+
+impl From<Vec<&str>> for Animation {
+    fn from(f: Vec<&str>) -> Self {
+        let sprites = f
+            .into_iter()
+            .map(String::from)
+            .collect();
+
+        Self { sprites }
+    }
+}
+
+impl From<&toml::Value> for Animation {
+    fn from(value: &toml::Value) -> Self {
+        let str_vec: Vec<&str> = value
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|x| x.as_str().unwrap())
+            .collect();
+
+        Animation::from(str_vec)
+    }
+}
+
 pub struct Screen<W: Write> {
     main_display: W,
     prelude_buffer: String,

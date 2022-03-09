@@ -17,7 +17,7 @@ pub struct TilePos {
 #[derive(Clone)]
 pub struct Tile {
     pub tile_id: TileId,
-    pub tile_string_alternative_id: usize,
+    pub animation_index: usize,
 }
 
 #[derive(Debug)]
@@ -135,14 +135,14 @@ impl Map {
 
                 let max_id = tile_config
                     .get(tile_id)
-                    .tile_strings
+                    .animations
                     .len() as u8;
 
-                let tile_string_alternative_id = (random::<u8>() % max_id) as usize;
+                let animation_index = (random::<u8>() % max_id) as usize;
 
                 tiles.push(Tile {
                     tile_id,
-                    tile_string_alternative_id,
+                    animation_index,
                 });
             }
         }

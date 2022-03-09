@@ -124,16 +124,16 @@ impl State {
 
         for tile in &self.map.tiles {
             let tile_id = tile.tile_id;
-            let tile_string_alternative_id = tile.tile_string_alternative_id;
+            let animation_index = tile.animation_index;
 
-            let tile_frames = &self
+            let sprites = &self
                 .tile_config
                 .get(tile_id)
-                .tile_strings[tile_string_alternative_id]
-                .frames;
-            let frame = (self.elapsed_time % tile_frames.len() as u64) as usize;
+                .animations[animation_index]
+                .sprites;
+            let frame = (self.elapsed_time % sprites.len() as u64) as usize;
 
-            let tile_str = &tile_frames[frame];
+            let tile_str = &sprites[frame];
             let color = self.tile_config.get(tile_id).color;
 
             for ch in tile_str.chars() {
