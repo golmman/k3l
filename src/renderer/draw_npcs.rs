@@ -1,6 +1,5 @@
 use super::Renderer;
-use crate::npc_config::NpcAnimationFrames;
-use crate::screen::Sprite;
+use crate::screen::{Sprite, Animation};
 use crate::state::npc::NpcAnimationId;
 use crate::state::State;
 
@@ -27,7 +26,7 @@ impl Renderer {
         }
     }
 
-    fn get_animation_frame<'a>(state: &'a State, animations: &'a NpcAnimationFrames) -> &'a str {
+    fn get_animation_frame<'a>(state: &'a State, animations: &'a Vec<Animation>) -> &'a str {
         let animation = &animations[0].sprites;
         let frame = (state.elapsed_time % animation.len() as u64) as usize;
 

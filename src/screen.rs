@@ -12,7 +12,7 @@ use crate::common::ScreenPoint;
 
 pub type DefaultScreen = Screen<RawTerminal<Stdout>>;
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct Pixel {
     pub ch: char,
     pub color: Color,
@@ -27,6 +27,7 @@ impl From<char> for Pixel {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct Sprite {
     pub pixels: Vec<Pixel>,
     pub size: ScreenPoint,
@@ -64,6 +65,22 @@ impl From<String> for Sprite {
 // TODO: Naming? Used for Npcs as well, so maybe Animation?
 // so the vec of Animation is simply 'animations'
 // also it should be a vec of Sprites!
+#[derive(Clone, Debug)]
+pub struct Animation2 {
+    pub sprites: Vec<Sprite>,
+}
+
+impl Animation2 {
+    pub fn new(texts: Vec<&str>, color: Color) -> Self {
+        let sprites = texts
+            .into_iter()
+            .map(|t| Sprite::from_color_text(t, color))
+            .collect();
+
+        Self { sprites }
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct Animation {
     pub sprites: Vec<String>,
@@ -214,7 +231,7 @@ impl DefaultScreen {
                 let screen_i = (self.size.width() * sprite_y + sprite_x) as usize;
                 let sprite_i = (sprite.size.width() * (sprite_y - p.y) + sprite_x - p.x) as usize;
 
-                self.pixel_buffer[screen_i] = sprite.pixels[sprite_i];
+                self.pixel_buffer[screen_i] = sprite.pixels[sprite_i].clone();
             }
         }
     }

@@ -7,8 +7,6 @@ use crate::screen::Animation;
 use crate::state::npc::NpcClass;
 
 pub type NpcId = String;
-// TODO: rename
-pub type NpcAnimationFrames = Vec<Animation>;
 
 #[derive(Debug)]
 pub struct BaseNpc {
@@ -18,8 +16,8 @@ pub struct BaseNpc {
     pub name: String,
     pub npc_class: NpcClass,
     pub walk_delay: i32,
-    pub animation_idle: NpcAnimationFrames,
-    pub animation_walk: NpcAnimationFrames,
+    pub animation_idle: Vec<Animation>,
+    pub animation_walk: Vec<Animation>,
 }
 
 #[derive(Debug)]
