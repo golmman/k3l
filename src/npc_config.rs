@@ -73,6 +73,7 @@ impl NpcConfig {
                 .unwrap()
                 .iter()
                 .map(Animation::from)
+                .map(Animation::with_color(color))
                 .collect();
 
             let animation_walk = animation["walk"]

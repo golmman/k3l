@@ -90,6 +90,7 @@ impl TileConfig {
                 .unwrap()
                 .iter()
                 .map(Animation::from)
+                .map(Animation::with_color(color))
                 .collect();
 
             tiles.insert(

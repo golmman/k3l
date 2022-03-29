@@ -15,7 +15,6 @@ use crate::common::TILE_SIZE;
 use crate::npc_config::BaseNpc;
 use crate::npc_config::NpcConfig;
 use crate::renderer::draw_debug_info::DEBUG_INFO_PAGE_TOTAL;
-use crate::screen::Pixel;
 use crate::screen::Sprite;
 use crate::tile_config::BaseTile;
 use crate::tile_config::TileConfig;
@@ -126,18 +125,17 @@ impl State {
             let tile_id = tile.tile_id;
             let animation_index = tile.animation_index;
 
-            let sprites = &self
+            let animation = &self
                 .tile_config
                 .get(tile_id)
-                .animations[animation_index]
-                .sprites;
-            let frame = (self.elapsed_time % sprites.len() as u64) as usize;
+                .animations[animation_index];
 
-            let tile_str = &sprites[frame];
-            let color = self.tile_config.get(tile_id).color;
+            let frame = (self.elapsed_time % animation.sprites.len() as u64) as usize;
 
-            for ch in tile_str.chars() {
-                pixels.push(Pixel { ch, color });
+            let sprite = &animation.sprites[frame];
+
+            for pixel in &sprite.pixels {
+                pixels.push(pixel.clone());
             }
         }
 

@@ -66,11 +66,11 @@ impl From<String> for Sprite {
 // so the vec of Animation is simply 'animations'
 // also it should be a vec of Sprites!
 #[derive(Clone, Debug)]
-pub struct Animation2 {
+pub struct Animation {
     pub sprites: Vec<Sprite>,
 }
 
-impl Animation2 {
+impl Animation {
     pub fn new(texts: Vec<&str>, color: Color) -> Self {
         let sprites = texts
             .into_iter()
@@ -79,18 +79,25 @@ impl Animation2 {
 
         Self { sprites }
     }
-}
 
-#[derive(Clone, Debug)]
-pub struct Animation {
-    pub sprites: Vec<String>,
+    pub fn with_color(color: Color) -> impl Fn(Self) -> Self {
+        move |mut animation| {
+            for sprite_i in 0..animation.sprites.len() {
+                let sprite = &mut animation.sprites[sprite_i];
+                for pixel_i in 0..sprite.pixels.len() {
+                    sprite.pixels[pixel_i].color = color;
+                }
+            }
+            animation
+        }
+    }
 }
 
 impl From<Vec<&str>> for Animation {
     fn from(f: Vec<&str>) -> Self {
         let sprites = f
             .into_iter()
-            .map(String::from)
+            .map(|t| Sprite::from_color_text(t, Color::none()))
             .collect();
 
         Self { sprites }
